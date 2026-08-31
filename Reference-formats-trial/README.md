@@ -1,35 +1,38 @@
 # Citation Fetcher (`fetch_citations.py`)
 
-A simple, standalone Python command-line tool that automatically converts a list of URLs (DOIs, PubMed Central links) or paper titles into properly formatted **APA 7th Edition** references and provides **inline citations**.
+A simple, standalone Python command-line tool that automatically converts a list of URLs (DOIs, PubMed Central links) or **paper titles** into properly formatted **APA 7th Edition** references and provides **short inline citations**.
 
-It relies purely on Python's built-in standard libraries (`urllib`, `json`), meaning **no installation via pip is required**. It queries the open and free [OpenAlex API](https://openalex.org/) and the [Europe PMC API](https://europepmc.org/).
+It relies purely on Python's built-in standard libraries (`urllib`, `json`), meaning **no installation via pip is required**. It intelligently routes queries to the most appropriate free academic API:
+- [OpenAlex](https://openalex.org/) (for DOIs)
+- [Crossref](https://crossref.org/) (for robust Paper Title searches)
+- [Europe PMC](https://europepmc.org/) (for PubMed Central IDs)
 
 ## Features
-- Handles direct DOI URLs (e.g., `https://doi.org/10.1126/science.ads8473`)
-- Handles PubMed Central URLs (e.g., `https://pmc.ncbi.nlm.nih.gov/articles/PMC8862159/`)
-- Can search by the exact Title of the paper.
-- Outputs a full APA-style reference.
-- Outputs a short-form inline citation (e.g., `(Hunter et al., 2025)`).
+- **URL Support**: Handles direct DOI URLs and PMC links.
+- **Title Search**: You can paste the exact title of a paper, and it will search Crossref to find the correct metadata.
+- **All Authors**: The full citation output includes *all* authors, regardless of how many there are (no "et al." in the bibliography).
+- **Inline Citation**: Provides a standard short-form inline citation (e.g., `(Hunter et al., 2025)`).
 
 ## Usage
 
 ### 1. Pass URLs or Titles directly via Command Line
-You can pass single or multiple links/titles separated by spaces. (If passing titles with spaces, be sure to wrap them in quotes).
+You can pass single or multiple links/titles separated by spaces. If passing a paper title with spaces, be sure to wrap it in quotes.
 
 ```bash
-python3 fetch_citations.py "https://doi.org/10.1126/science.ads8473" "https://pmc.ncbi.nlm.nih.gov/articles/PMC8862159/"
+python3 fetch_citations.py "https://doi.org/10.1126/science.ads8473" "Artificial intelligence in the rational design of lipid nanoparticles for mRNA therapeutics"
 ```
+
 **Output Example:**
 ```
-1. Theresa Hunter et al. (2025). In vivo CAR T cell generation to treat cancer and autoimmune disease. Science. https://doi.org/10.1126/science.ads8473
+1. Hunter, Theresa, Bao, Yanjie, Zhang, Yan, ... [all authors listed] & Aghajanian, Haig (2025). In vivo CAR T cell generation to treat cancer and autoimmune disease. Science. https://doi.org/10.1126/science.ads8473
    Inline: (Hunter et al., 2025)
 
-2. Patel R et al. (2022). A comprehensive review of SARS-CoV-2 vaccines: Pfizer, Moderna & Johnson & Johnson.. Hum Vaccin Immunother. https://doi.org/10.1080/21645515.2021.2002083
-   Inline: (R et al., 2022)
+2. Zhao, Heyu, Xu, Junchao, Gao, Xia, Zhu, Jingcheng, & He, Zhongshan (2026). Artificial intelligence in the rational design of lipid nanoparticles for mRNA therapeutics. The Innovation Drug Discovery. https://doi.org/10.59717/j.xinn-drugdisc.2026.100006
+   Inline: (Zhao et al., 2026)
 ```
 
 ### 2. Read from a Text File
-If you have a large list of links, save them into a `.txt` file, with one link or title per line.
+If you have a large list of links or titles, save them into a `.txt` file, with one entry per line.
 
 **`links.txt`**
 ```
