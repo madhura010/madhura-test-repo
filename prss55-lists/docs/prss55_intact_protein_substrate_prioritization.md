@@ -65,10 +65,18 @@ Discard or flag candidates when the scissile bond:
 
 - lies in a transmembrane segment or signal peptide;
 - is on the membrane side inaccessible to PRSS55;
-- is in a cytosolic/nuclear region incompatible with the intended PRSS55
-  compartment;
+- is in an intracellular compartment with no route to the extracellular space
+  short of cell lysis (cytoplasm, nucleus, chromosome, mitochondrion,
+  peroxisome) — unless the same subcellular-location annotation also
+  indicates a secreted or surface-accessible pool (e.g. `Secreted; Membrane`
+  for a shed ectodomain), in which case the conflict does not apply;
 - is buried in the core of a folded domain;
 - has no usable structure or disorder evidence and cannot be assessed.
+
+Treat residency in a secretory-pathway compartment the protein may only be
+transiting through (Golgi apparatus, endoplasmic reticulum, lysosome) as a
+manual-review flag, not a hard exclusion — residency there is not always
+permanent, unlike the compartments above.
 
 Use UniProt topology/processing annotations first. Use a high-quality
 experimental structure when available; otherwise use an AlphaFold model, marked
@@ -83,6 +91,7 @@ P1–P1′ bond (Arg position 4 followed by position 5).
 | --- | --- | --- |
 | Window accessibility | Mean and minimum SASA/RSA across the 8-mer | Site-level evidence of exposure; do not use protein-wide or domain-average SASA alone. |
 | Bond-specific accessibility | Per-residue SASA/RSA at P1 and P1′, once the bond is defined | Do not compute or infer this from the centre of the 8-mer. |
+| Electrostatic complementarity | Intramolecular salt-bridge check: is the charged P1/P1′ side chain within a proxy radius of an oppositely-charged residue in the folded substrate | Penalize a charged P1/P1′ residue that may already be ion-paired within the fold rather than free to engage the protease. Substrate-side only — does not model PRSS55's own active site, which has no solved structure. |
 | Structural depth/contact density | Local atom/residue contacts or depth below protein surface | Penalize grooves and cores that are nominally solvent exposed but sterically constrained. |
 | Secondary structure | Secondary structure at least across P2–P2′ | Favor coil, turn, or accessible loop; penalize stable alpha-helix and beta-strand. |
 | Flexibility | Disorder prediction plus AlphaFold pLDDT where applicable | Supports, but does not prove, transient access. Low pLDDT is not direct evidence of cleavage. |
@@ -113,19 +122,25 @@ documented composite:
 
 ```text
 priority =
-    hard exclusions (sequence mismatch, processing overlap, membrane conflict)
-  → manual-review flags (topology, glycan/PTM, disulfide, missing structure)
+    hard exclusions (sequence mismatch, processing overlap, membrane conflict,
+                      intracellular-compartment conflict)
+  → manual-review flags (topology, glycan/PTM, disulfide, isoform ambiguity,
+                          domain overlap, secretory-pathway residency,
+                          secondary structure, contact density,
+                          electrostatic/salt-bridge, missing structure)
   → sort remaining sites by supplied prob_cleavage
 ```
 
 Until positive and negative experimental labels exist, this is a prioritization
 workflow, not a calibrated probability. Use statuses:
 
-- **ELIGIBLE:** no automatic sequence, processing, or membrane conflict.
-- **REVIEW:** no hard conflict, but topology/structure/PTM evidence needs human
-  interpretation.
-- **EXCLUDE:** incompatible sequence mapping, processing annotation, or
-  transmembrane/intramembrane overlap.
+- **ELIGIBLE:** no automatic sequence, processing, membrane, or compartment
+  conflict, and none of the manual-review flags above apply.
+- **REVIEW:** no hard conflict, but topology/structure/electrostatic/PTM
+  evidence needs human interpretation.
+- **EXCLUDE:** incompatible sequence mapping, processing annotation,
+  transmembrane/intramembrane overlap, or an intracellular compartment with
+  no route to the extracellular space.
 
 ### 7. Produce a reproducible candidate table
 
@@ -135,8 +150,9 @@ One row per predicted site:
 accession | isoform | protein name | 8-mer | P1-P1′ coordinate |
 prob_cleavage | P1/P1′ SASA | min/mean window SASA |
 secondary structure | disorder/pLDDT | topology status |
-PTM/interface flags | structure source/confidence |
-exposure robustness | composite score | tier | rationale
+PTM/interface flags | electrostatic/salt-bridge flag |
+structure source/confidence | exposure robustness |
+composite score | tier | rationale
 ```
 
 Keep the raw feature values, tool/database versions, structure identifiers, and
