@@ -1,0 +1,476 @@
+<title>PRSS55 Shortlisting Logic</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+<style>
+  :root{
+    --bg:#F5F7F7;
+    --panel:#FFFFFF;
+    --panel-border:#D7E0E1;
+    --ink:#172023;
+    --muted:#5E7175;
+    --accent:#0F6E77;
+    --accent-soft:#E4F1F1;
+    --rule:#D7E0E1;
+    --eligible-solid:#256A40;
+    --review-solid:#8F6208;
+    --exclude-solid:#9C3526;
+    --font-display:'IBM Plex Sans',system-ui,sans-serif;
+    --font-body:'IBM Plex Sans',system-ui,sans-serif;
+    --font-mono:'IBM Plex Mono',ui-monospace,'SFMono Regular',Consolas,monospace;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#10171A;
+      --panel:#1A2327;
+      --panel-border:#2A363A;
+      --ink:#E7EEEF;
+      --muted:#92A6AA;
+      --accent:#5FCBD3;
+      --accent-soft:#1D3438;
+      --rule:#2A363A;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#10171A;
+    --panel:#1A2327;
+    --panel-border:#2A363A;
+    --ink:#E7EEEF;
+    --muted:#92A6AA;
+    --accent:#5FCBD3;
+    --accent-soft:#1D3438;
+    --rule:#2A363A;
+  }
+
+  *{box-sizing:border-box;}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:var(--font-body);
+    margin:0;
+    padding:0 0 72px;
+  }
+  .wrap{
+    max-width:1180px;
+    margin:0 auto;
+    padding:56px 32px 0;
+  }
+  .eyebrow{
+    font-family:var(--font-mono);
+    font-size:12.5px;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+    color:var(--accent);
+    margin:0 0 14px;
+  }
+  h1{
+    font-family:var(--font-display);
+    font-weight:700;
+    font-size:clamp(28px,3.6vw,40px);
+    line-height:1.15;
+    margin:0 0 18px;
+    text-wrap:balance;
+    max-width:20ch;
+  }
+  .lede{
+    font-size:16.5px;
+    line-height:1.6;
+    color:var(--muted);
+    max-width:62ch;
+    margin:0 0 8px;
+  }
+  section{
+    margin-top:56px;
+  }
+  h2{
+    font-family:var(--font-display);
+    font-weight:600;
+    font-size:22px;
+    margin:0 0 6px;
+    text-wrap:balance;
+  }
+  .section-note{
+    color:var(--muted);
+    font-size:14.5px;
+    line-height:1.55;
+    max-width:70ch;
+    margin:0 0 22px;
+  }
+  figure{
+    margin:0;
+  }
+  .diagram-scroll{
+    overflow-x:auto;
+    border:1px solid var(--panel-border);
+    border-radius:14px;
+    background:var(--panel);
+    padding:8px;
+  }
+  .diagram-scroll svg{
+    display:block;
+    width:100%;
+    height:auto;
+  }
+  #pipeline-svg{ min-width:640px; }
+  #decision-svg{ min-width:900px; }
+  figcaption{
+    color:var(--muted);
+    font-size:13.5px;
+    line-height:1.5;
+    margin-top:12px;
+    max-width:80ch;
+  }
+
+  svg text{
+    font-family:var(--font-body);
+    fill:currentColor;
+  }
+  svg .mono{ font-family:var(--font-mono); }
+  svg .box-frame{ fill:var(--panel); stroke:var(--panel-border); stroke-width:1.5; }
+  svg .box-header{ font-weight:700; }
+  svg .box-sub{ fill:var(--muted); }
+  svg .rule-line{ stroke:var(--rule); stroke-width:1; }
+  svg .flow-line{ fill:none; stroke:var(--muted); stroke-width:1.6; }
+  svg .branch-label{ fill:var(--muted); font-size:11.5px; font-style:normal; }
+  svg .cluster-head{ font-weight:600; }
+  svg .outcome-text{ fill:#FBFBFA; }
+  svg .outcome-exclude{ fill:var(--exclude-solid); }
+  svg .outcome-review{ fill:var(--review-solid); }
+  svg .outcome-eligible{ fill:var(--eligible-solid); }
+  svg .stage-eyebrow{ fill:var(--accent); font-family:var(--font-mono); letter-spacing:.06em; }
+
+  .legend{
+    display:flex;
+    gap:22px;
+    flex-wrap:wrap;
+    margin-bottom:16px;
+    font-size:13px;
+    color:var(--muted);
+  }
+  .legend span{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+  }
+  .swatch{
+    width:12px;
+    height:12px;
+    border-radius:3px;
+    display:inline-block;
+  }
+  .swatch.exclude{ background:var(--exclude-solid); }
+  .swatch.review{ background:var(--review-solid); }
+  .swatch.eligible{ background:var(--eligible-solid); }
+
+  table{
+    width:100%;
+    border-collapse:collapse;
+    font-size:14px;
+    background:var(--panel);
+    border:1px solid var(--panel-border);
+    border-radius:14px;
+    overflow:hidden;
+  }
+  .table-scroll{
+    overflow-x:auto;
+    border-radius:14px;
+  }
+  thead th{
+    text-align:left;
+    font-family:var(--font-mono);
+    font-size:11.5px;
+    letter-spacing:.05em;
+    text-transform:uppercase;
+    color:var(--muted);
+    font-weight:500;
+    padding:14px 18px;
+    border-bottom:1px solid var(--panel-border);
+    white-space:nowrap;
+  }
+  tbody td{
+    padding:14px 18px;
+    border-bottom:1px solid var(--rule);
+    vertical-align:top;
+    line-height:1.5;
+  }
+  tbody tr:last-child td{ border-bottom:none; }
+  tbody tr.callout td{
+    background:var(--accent-soft);
+  }
+  td.type{
+    color:var(--muted);
+    font-size:13px;
+    white-space:nowrap;
+  }
+  td.rule code, .lede code{
+    font-family:var(--font-mono);
+    font-size:12.5px;
+    background:var(--accent-soft);
+    padding:1px 6px;
+    border-radius:5px;
+  }
+  td.confidence{
+    color:var(--muted);
+    font-size:13px;
+    max-width:26ch;
+  }
+
+  footer{
+    margin-top:64px;
+    padding-top:28px;
+    border-top:1px solid var(--panel-border);
+    color:var(--muted);
+    font-size:13.5px;
+    line-height:1.65;
+    max-width:80ch;
+  }
+  footer strong{ color:var(--ink); font-weight:600; }
+</style>
+
+<div class="wrap">
+
+  <p class="eyebrow">Site-level triage &middot; deterministic &middot; fully auditable</p>
+  <h1>How a predicted PRSS55 cleavage site becomes a ranked candidate</h1>
+  <p class="lede">Three scripts turn raw model windows into an annotated, ranked shortlist for wet-lab review. Every exclusion and review flag is a named, inspectable rule &mdash; nothing is silently dropped from the output.</p>
+
+  <section aria-labelledby="pipeline-h">
+    <h2 id="pipeline-h">Pipeline flow</h2>
+    <p class="section-note">Each stage is one script, run in sequence from the project root. UniProt and AlphaFold lookups are cached per protein accession, so proteins with many candidate sites are only fetched once.</p>
+    <figure>
+      <div class="diagram-scroll">
+        <svg id="pipeline-svg" viewBox="0 0 1160 190" role="img" aria-label="Three-stage pipeline: prepare_prss55_predictions.py normalizes input, extract_prss55_site_features.py retrieves annotations and structure, triage_prss55_sites.py applies exclusion and review rules and writes the ranked output.">
+          <defs>
+            <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M0,0 L10,5 L0,10 z" fill="var(--muted)"></path>
+            </marker>
+          </defs>
+
+          <rect class="box-frame" x="20" y="25" width="340" height="140" rx="10"></rect>
+          <text class="stage-eyebrow" x="44" y="52" font-size="11">STAGE 1 &middot; NORMALIZE</text>
+          <text class="mono box-header" x="44" y="76" font-size="13">prepare_prss55_predictions.py</text>
+          <text x="44" y="100" font-size="12.5">raw seq_id/window rows &rarr; accession,</text>
+          <text x="44" y="118" font-size="12.5">site_start, eight_mer, model_score</text>
+          <text class="box-sub" x="44" y="140" font-size="11.5">p1_offset defaults to 4 (Arg&darr;P1&prime;); source_isoform</text>
+          <text class="box-sub" x="44" y="155" font-size="11.5">parsed from the accession's -N suffix</text>
+
+          <line class="flow-line" x1="362" y1="95" x2="405" y2="95" marker-end="url(#arrow)"></line>
+
+          <rect class="box-frame" x="410" y="15" width="340" height="160" rx="10"></rect>
+          <text class="stage-eyebrow" x="434" y="42" font-size="11">STAGE 2 &middot; EXTRACT FEATURES</text>
+          <text class="mono box-header" x="434" y="66" font-size="13">extract_prss55_site_features.py</text>
+          <text x="434" y="90" font-size="12.5">UniProt annotations + AlphaFold RSA /</text>
+          <text x="434" y="108" font-size="12.5">pLDDT / PyDSSP secondary structure</text>
+          <text class="box-sub" x="434" y="130" font-size="11.5">cached per accession &rarr;</text>
+          <text class="box-sub mono" x="434" y="145" font-size="11">cache/uniprot/, cache/structural/</text>
+          <text class="box-sub" x="434" y="163" font-size="11.5">progress printed to stderr, [i/N]</text>
+
+          <line class="flow-line" x1="752" y1="95" x2="795" y2="95" marker-end="url(#arrow)"></line>
+
+          <rect class="box-frame" x="800" y="25" width="340" height="140" rx="10"></rect>
+          <text class="stage-eyebrow" x="824" y="52" font-size="11">STAGE 3 &middot; TRIAGE</text>
+          <text class="mono box-header" x="824" y="76" font-size="13">triage_prss55_sites.py</text>
+          <text x="824" y="100" font-size="12.5">hard exclusions &rarr; review flags &rarr;</text>
+          <text x="824" y="118" font-size="12.5">rank by prob_cleavage within tier</text>
+          <text class="box-sub mono" x="824" y="140" font-size="11">&rarr; results/prss55_triaged_sites.tsv</text>
+          <text class="box-sub" x="824" y="155" font-size="11.5">all rows retained, none dropped</text>
+        </svg>
+      </div>
+      <figcaption>Figure 1. The three scripts and what crosses each boundary: a normalized site table, an annotated feature table, and a ranked, reasoned shortlist.</figcaption>
+    </figure>
+  </section>
+
+  <section aria-labelledby="decision-h">
+    <h2 id="decision-h">Triage decision logic</h2>
+    <p class="section-note">Stage 3, in full: each site passes through two independent rule gates. A hard exclusion always wins; review flags accumulate but never remove a row from the output.</p>
+    <div class="legend">
+      <span><i class="swatch eligible"></i>ELIGIBLE &mdash; no automatic conflict</span>
+      <span><i class="swatch review"></i>REVIEW &mdash; needs human interpretation</span>
+      <span><i class="swatch exclude"></i>EXCLUDE &mdash; sequence, processing, membrane, or compartment conflict</span>
+    </div>
+    <figure>
+      <div class="diagram-scroll">
+        <svg id="decision-svg" viewBox="0 0 1360 1150" role="img" aria-label="Decision flowchart: an extracted site row first passes a hard exclusion gate of five rules; any true excludes it. Surviving rows pass a review-flag gate of several grouped conditions; any true sends the site to REVIEW, none to ELIGIBLE. All three outcomes converge into one ranked output file, sorted ELIGIBLE before REVIEW before EXCLUDE, then by prob_cleavage within each tier.">
+          <defs>
+            <marker id="arrow2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M0,0 L10,5 L0,10 z" fill="var(--muted)"></path>
+            </marker>
+          </defs>
+
+          <!-- Input -->
+          <rect class="box-frame" x="300" y="20" width="400" height="64" rx="10"></rect>
+          <text text-anchor="middle" x="500" y="46" font-size="13" font-weight="600">Extracted site row</text>
+          <text text-anchor="middle" class="box-sub" x="500" y="64" font-size="11.5">one candidate 8-mer, fully annotated (Stage 2 output)</text>
+
+          <line class="flow-line" x1="500" y1="84" x2="500" y2="118" marker-end="url(#arrow2)"></line>
+
+          <!-- Gate 1: hard exclusion -->
+          <rect class="box-frame" x="140" y="124" width="720" height="226" rx="12"></rect>
+          <text x="170" y="162" font-size="15.5" class="box-header">HARD EXCLUSION CHECK</text>
+          <text x="170" y="180" font-size="12" class="box-sub">any TRUE excludes the site &mdash; the row is still written, with its reason</text>
+          <line class="rule-line" x1="170" y1="192" x2="830" y2="192"></line>
+          <text x="180" y="216" font-size="12.5">&bull; 8-mer does not match the UniProt sequence at this position</text>
+          <text x="180" y="242" font-size="12.5">&bull; overlaps a Transmembrane / Intramembrane annotation</text>
+          <text x="180" y="268" font-size="12.5">&bull; overlaps Signal / Propeptide / Initiator-Met (removed before maturity)</text>
+          <text x="180" y="294" font-size="12.5">&bull; cytoplasmic Topological-domain annotation</text>
+          <text x="180" y="320" font-size="12.5">&bull; cytoplasm, nucleus, chromosome, mitochondrion, or peroxisome (unless also Secreted/surface)</text>
+
+          <line class="flow-line" x1="500" y1="350" x2="500" y2="392" marker-end="url(#arrow2)"></line>
+          <text text-anchor="middle" class="branch-label" x="560" y="374">all false</text>
+
+          <line class="flow-line" x1="860" y1="237" x2="895" y2="237" marker-end="url(#arrow2)"></line>
+          <text text-anchor="middle" class="branch-label" x="877" y="222">any true</text>
+
+          <!-- EXCLUDE outcome -->
+          <rect class="outcome-exclude" x="900" y="192" width="190" height="90" rx="10"></rect>
+          <text class="outcome-text" text-anchor="middle" x="995" y="230" font-size="15" font-weight="700">EXCLUDE</text>
+          <text class="outcome-text" text-anchor="middle" x="995" y="250" font-size="11">reason recorded,</text>
+          <text class="outcome-text" text-anchor="middle" x="995" y="264" font-size="11">ranked last</text>
+
+          <!-- Gate 2: review flags -->
+          <rect class="box-frame" x="140" y="398" width="720" height="352" rx="12"></rect>
+          <text x="170" y="436" font-size="15.5" class="box-header">REVIEW FLAGS</text>
+          <text x="170" y="454" font-size="12" class="box-sub">any TRUE sends the site to manual review &mdash; flags accumulate, none of them exclude</text>
+          <line class="rule-line" x1="170" y1="466" x2="830" y2="466"></line>
+
+          <text x="180" y="490" font-size="13" class="cluster-head">Annotation-based (UniProt; presence / absence)</text>
+          <text x="196" y="510" font-size="12">no topology annotation (skipped for purely secreted, non-membrane proteins)</text>
+          <text x="196" y="530" font-size="12">glycosylation / PTM within 8 residues &middot; disulfide overlap &middot; multiple isoforms</text>
+          <text x="196" y="550" font-size="12">domain / motif / region overlap &middot; secretory-pathway-only location (Golgi/ER/lysosome)</text>
+
+          <text x="180" y="580" font-size="13" class="cluster-head">Structural heuristics &mdash; AlphaFold-derived, provisional</text>
+          <text x="196" y="600" font-size="12">helix or strand (not coil / loop) at the P1 or P1&prime; bond &middot; PyDSSP</text>
+          <text x="196" y="620" font-size="12">&ge;20 C&alpha; atoms within 8&#8491; of the window &middot; pLDDT &lt; 70 (low confidence)</text>
+          <text x="196" y="640" font-size="12">possible intramolecular salt bridge at P1/P1&prime; (C&alpha;&ndash;C&alpha; proxy, 8&#8491;)</text>
+
+          <text x="180" y="670" font-size="13" class="cluster-head">Bond definition</text>
+          <text x="196" y="690" font-size="12">P1&ndash;P1&prime; position unresolved for this site</text>
+
+          <line class="flow-line" x1="500" y1="750" x2="500" y2="792" marker-end="url(#arrow2)"></line>
+          <text text-anchor="middle" class="branch-label" x="560" y="774">all false</text>
+
+          <line class="flow-line" x1="860" y1="574" x2="1113" y2="574" marker-end="url(#arrow2)"></line>
+          <text text-anchor="middle" class="branch-label" x="985" y="560">any true</text>
+
+          <!-- REVIEW outcome -->
+          <rect class="outcome-review" x="1118" y="529" width="190" height="90" rx="10"></rect>
+          <text class="outcome-text" text-anchor="middle" x="1213" y="567" font-size="15" font-weight="700">REVIEW</text>
+          <text class="outcome-text" text-anchor="middle" x="1213" y="587" font-size="11">flags recorded,</text>
+          <text class="outcome-text" text-anchor="middle" x="1213" y="601" font-size="11">human interprets</text>
+
+          <!-- ELIGIBLE outcome -->
+          <rect class="outcome-eligible" x="400" y="798" width="200" height="80" rx="10"></rect>
+          <text class="outcome-text" text-anchor="middle" x="500" y="836" font-size="15" font-weight="700">ELIGIBLE</text>
+          <text class="outcome-text" text-anchor="middle" x="500" y="856" font-size="11">no automatic conflict</text>
+
+          <!-- convergence -->
+          <line class="flow-line" x1="500" y1="878" x2="500" y2="986" marker-end="url(#arrow2)"></line>
+          <line class="flow-line" x1="995" y1="282" x2="995" y2="986" marker-end="url(#arrow2)"></line>
+          <line class="flow-line" x1="1213" y1="619" x2="1213" y2="986" marker-end="url(#arrow2)"></line>
+
+          <!-- Final -->
+          <rect class="box-frame" x="140" y="990" width="1160" height="120" rx="12"></rect>
+          <text text-anchor="middle" x="720" y="1028" font-size="16" class="box-header">Ranked, auditable output</text>
+          <text text-anchor="middle" x="720" y="1052" font-size="12.5">sorted ELIGIBLE &rarr; REVIEW &rarr; EXCLUDE, then by prob_cleavage (desc) within each tier</text>
+          <text text-anchor="middle" x="720" y="1074" font-size="12.5">every row keeps its exclusion_reason / review_reason &mdash; nothing is deleted</text>
+          <text text-anchor="middle" class="mono box-sub" x="720" y="1094" font-size="11.5">&rarr; results/prss55_triaged_sites.tsv</text>
+        </svg>
+      </div>
+      <figcaption>Figure 2. The full triage tree in <code>triage_prss55_sites.py</code>. Five hard-exclusion rules gate first; the review conditions (grouped into three clusters here) only ever add a flag, never remove a row. Subcellular-location matching is per location term, not the whole string &mdash; a protein marked <code>Secreted; Cytoplasmic vesicle, ...</code> is not excluded just because "cytoplasm" appears as a substring.</figcaption>
+    </figure>
+  </section>
+
+  <section aria-labelledby="criteria-h">
+    <h2 id="criteria-h">Scientific cutoffs &amp; assumptions</h2>
+    <p class="section-note">What each rule actually checks, where the evidence comes from, and how much confidence to place in it &mdash; the distinction that matters most for reading the shortlist.</p>
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr><th>Criterion</th><th>Evidence source</th><th>Rule / threshold</th><th>Confidence</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>P1&ndash;P1&prime; bond definition</td>
+            <td class="type">Biological convention</td>
+            <td class="rule">Central Arg = P1 (<code>--p1-offset 4</code>, default); Arg&darr;P1&prime;</td>
+            <td class="confidence">Established for this dataset; recorded per site</td>
+          </tr>
+          <tr>
+            <td>Sequence identity</td>
+            <td class="type">UniProt, deterministic</td>
+            <td class="rule">8-mer must exactly match the UniProt sequence at <code>site_start</code></td>
+            <td class="confidence">Hard exclusion on mismatch</td>
+          </tr>
+          <tr>
+            <td>Processing / TM overlap</td>
+            <td class="type">UniProt, deterministic</td>
+            <td class="rule">Overlaps Signal, Propeptide, Initiator-Met, Transmembrane, or Intramembrane</td>
+            <td class="confidence">Hard exclusion</td>
+          </tr>
+          <tr>
+            <td>Compartment accessibility</td>
+            <td class="type">UniProt, deterministic</td>
+            <td class="rule">Cytoplasmic topology, or subcellular location is Cytoplasm / Nucleus / Chromosome / Mitochondrion / Peroxisome with no accompanying Secreted / surface / acrosome term</td>
+            <td class="confidence">Hard exclusion &mdash; PRSS55 is surface / extracellular; an accessible term anywhere in the annotation overrides</td>
+          </tr>
+          <tr>
+            <td>Secretory-pathway residency</td>
+            <td class="type">UniProt, deterministic</td>
+            <td class="rule">Subcellular location is Golgi apparatus / Endoplasmic reticulum / Lysosome with no Secreted / surface term</td>
+            <td class="confidence">Review only &mdash; may be transiting through, not permanently resident</td>
+          </tr>
+          <tr>
+            <td>Exposure robustness</td>
+            <td class="type">AlphaFold pLDDT, computational</td>
+            <td class="rule">pLDDT &ge; 70 &rarr; Medium &middot; &lt; 70 &rarr; Low &middot; no data &rarr; Unknown</td>
+            <td class="confidence">No "High" tier without an experimental structure</td>
+          </tr>
+          <tr>
+            <td>Local contact density</td>
+            <td class="type">AlphaFold C&alpha; geometry, computational</td>
+            <td class="rule">&ge; 20 C&alpha; atoms within 8&#8491; of the 8-mer window</td>
+            <td class="confidence">Provisional heuristic &mdash; not experimentally calibrated</td>
+          </tr>
+          <tr>
+            <td>Secondary structure at bond</td>
+            <td class="type">PyDSSP on AlphaFold model</td>
+            <td class="rule">Helix (H) or strand (E) at P1 or P1&prime;</td>
+            <td class="confidence">Review only &mdash; coil / loop favored</td>
+          </tr>
+          <tr>
+            <td>Intramolecular salt bridge</td>
+            <td class="type">AlphaFold residue geometry, computational</td>
+            <td class="rule">A charged P1 or P1&prime; residue (Arg/Lys/Asp/Glu) has an oppositely-charged residue within 8&#8491; (C&alpha;&ndash;C&alpha; proxy)</td>
+            <td class="confidence">Provisional heuristic; substrate-side only &mdash; does not model PRSS55's own (unsolved) active site</td>
+          </tr>
+          <tr>
+            <td>PTM / glycan / disulfide proximity</td>
+            <td class="type">UniProt, deterministic</td>
+            <td class="rule">Feature within 8 residues of the window, or direct overlap</td>
+            <td class="confidence">Review only, never excludes</td>
+          </tr>
+          <tr>
+            <td>Isoform ambiguity</td>
+            <td class="type">UniProt ALTERNATIVE PRODUCTS</td>
+            <td class="rule">Protein has more than one annotated isoform</td>
+            <td class="confidence">Review &mdash; confirm the tested isoform</td>
+          </tr>
+          <tr>
+            <td>Domain / motif overlap</td>
+            <td class="type">UniProt, deterministic</td>
+            <td class="rule">Overlaps Domain, Region, Repeat, Motif, Zinc finger, or Coiled coil</td>
+            <td class="confidence">Review only</td>
+          </tr>
+          <tr class="callout">
+            <td>Pfam / InterPro family</td>
+            <td class="type">UniProt, deterministic</td>
+            <td class="rule">Recorded (<code>family_annotations</code>) but never gates triage</td>
+            <td class="confidence">Protein-level evidence, not site-level &mdash; deliberately excluded from scoring</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <footer>
+    <p><strong>Reading the shortlist.</strong> This is a cleavability-prioritization workflow, not a claim of confirmed cleavage. <code>prob_cleavage</code> ranks the upstream model's predictions after structural exclusions &mdash; it is not a probability that the intact protein is cleaved in vivo. RSA, pLDDT, and secondary structure all come from a single AlphaFold model and do not capture native complexes, glycans, membranes, or conformational ensembles. Every EXCLUDE and REVIEW row is retained with its reason, for human review before selecting wet-lab targets.</p>
+  </footer>
+
+</div>
