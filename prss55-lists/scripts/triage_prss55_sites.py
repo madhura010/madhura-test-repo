@@ -19,6 +19,62 @@ def probability(row):
         return float("-inf")
 
 
+# Terms that mark a location as plausibly reaching a surface-anchored
+# ectoenzyme's compartment (extracellular fluid, cell surface). If any of
+# these appear, the location is never treated as inaccessible, even
+# alongside an organelle term below -- a protein annotated across multiple
+# trafficking stages may still have a secreted/surface pool.
+ACCESSIBLE_MARKERS = ("secreted", "cell membrane", "cell surface", "extracellular", "acrosome")
+
+# Unambiguous intracellular compartments with no route to the extracellular
+# space short of cell lysis -- hard exclusion.
+INACCESSIBLE_PREFIXES = ("nucleus", "chromosome", "mitochondri", "peroxisom")
+
+# Secretory-pathway compartments a protein may only be transiting through on
+# its way to secretion or the surface -- a REVIEW flag, not an exclusion.
+SECRETORY_PATHWAY_MARKERS = ("golgi", "endoplasmic reticulum", "lysosom")
+
+
+def subcellular_verdict(subcell_raw):
+    """Classify a UniProt subcellular_location string against PRSS55 accessibility.
+
+    Matches per semicolon-separated location term, not the raw string --
+    a naive substring check on "cytoplasm" also matches "Cytoplasmic
+    vesicle, secretory vesicle, acrosome", which is a distinct membrane-bound
+    compartment, not bulk cytosol.
+    """
+    terms = [t.strip() for t in subcell_raw.lower().split(";") if t.strip()]
+    if any(marker in term for term in terms for marker in ACCESSIBLE_MARKERS):
+        return None, None
+    for term in terms:
+        if term == "cytoplasm" or term.startswith("cytoplasm,") or term.startswith(INACCESSIBLE_PREFIXES):
+            return f"subcellular location indicates an intracellular compartment inaccessible to a surface-anchored protease ({term})", None
+    for term in terms:
+        if any(marker in term for marker in SECRETORY_PATHWAY_MARKERS):
+            return None, f"subcellular location ({term}) is a secretory-pathway compartment with no Secreted/surface annotation; confirm the site's trafficking destination"
+    return None, None
+
+
+SOLUBLE_MARKERS = ("secreted", "extracellular", "acrosome")
+
+
+def has_no_membrane_topology_question(subcell_raw):
+    """True when subcellular_location indicates a purely soluble/secreted protein
+    with no membrane term anywhere. Such a protein never crosses a membrane, so
+    it has no cytoplasmic-vs-extracellular sidedness for UniProt to annotate --
+    a missing Topological domain feature there is expected, not a genuine gap.
+    A protein that is secreted *and* membrane-associated (e.g. a shed
+    ectodomain) still has a real sidedness question, so any membrane term
+    keeps this False.
+    """
+    terms = [t.strip() for t in subcell_raw.lower().split(";") if t.strip()]
+    if not terms:
+        return False
+    has_soluble = any(any(marker in term for marker in SOLUBLE_MARKERS) for term in terms)
+    has_membrane = any("membrane" in term for term in terms)
+    return has_soluble and not has_membrane
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--features", required=True, type=Path)
@@ -38,12 +94,14 @@ def main():
         topo = row.get("topology_annotations", "").lower()
         if "cytoplasmic" in topo:
             exclusions.append("overlaps a cytoplasmic topology annotation (inaccessible to PRSS55)")
-        elif topo in ("", "-"):
+        elif topo in ("", "-") and not has_no_membrane_topology_question(row.get("subcellular_location", "")):
             review.append("membrane-side accessibility has no UniProt topology annotation")
 
-        subcell = row.get("subcellular_location", "").lower()
-        if "cytoplasm" in subcell or "nucleus" in subcell:
-            exclusions.append("subcellular location indicates cytosolic/nuclear compartment (inaccessible)")
+        subcell_exclusion, subcell_review = subcellular_verdict(row.get("subcellular_location", ""))
+        if subcell_exclusion:
+            exclusions.append(subcell_exclusion)
+        if subcell_review:
+            review.append(subcell_review)
         if row.get("glycosylation_count_near_site") not in ("", "0"):
             review.append("nearby glycosylation annotation")
         if row.get("modified_residue_count_near_site") not in ("", "0"):
@@ -54,6 +112,18 @@ def main():
         ss_p1, ss_p1prime = row.get("ss_p1", ""), row.get("ss_p1prime", "")
         if ss_p1 in ("H", "E") or ss_p1prime in ("H", "E"):
             review.append("P1/P1' bond falls within a predicted helix/strand rather than coil/loop")
+
+        # CA-CA proxy for an intramolecular salt bridge (see SALT_BRIDGE_RADIUS
+        # in extract_prss55_site_features.py) -- a charged P1/P1' side chain
+        # already paired with an opposite charge in the folded substrate is
+        # less available to engage the protease's S1 pocket, even if the
+        # residue's window-level RSA reads as exposed.
+        p1_partner = row.get("p1_salt_bridge_partner", "")
+        if p1_partner not in ("", "-"):
+            review.append(f"P1 residue may be intramolecularly salt-bridged (partner residue {p1_partner})")
+        p1prime_partner = row.get("p1prime_salt_bridge_partner", "")
+        if p1prime_partner not in ("", "-"):
+            review.append(f"P1' residue may be intramolecularly salt-bridged (partner residue {p1prime_partner})")
 
         # Heuristic cutoff on CA atoms within 8 A of the window; not
         # experimentally calibrated. Revisit once experimental cleavage

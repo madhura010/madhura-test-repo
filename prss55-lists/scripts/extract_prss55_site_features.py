@@ -25,8 +25,25 @@ OUTPUT_COLUMNS = (
     "processing_overlap mature_peptide_overlap chain_annotations transmembrane_overlap topology_annotations subcellular_location domain_annotations family_annotations "
     "glycosylation_count_near_site modified_residue_count_near_site disulfide_overlap rsa_p1 rsa_p1prime rsa_window_mean "
     "rsa_window_min plddt_window_mean contact_density_8a exposure_robustness ss_p1 ss_p1prime ss_window_pattern ss_helix_fraction ss_strand_fraction ss_loop_fraction "
+    "p1_salt_bridge_partner p1prime_salt_bridge_partner "
     "structure_source evidence_gaps warnings retrieved_at"
 ).split()
+
+# Residues carrying a formal charge at physiological pH, for the intramolecular
+# salt-bridge check below. Arg/Lys are positive; Asp/Glu are negative. His is
+# left out -- its protonation state near pH 7 is too uncertain to treat as a
+# reliable positive charge.
+POSITIVE_RESIDUES = {"ARG", "LYS"}
+NEGATIVE_RESIDUES = {"ASP", "GLU"}
+# CA-CA distance used as a proxy for salt-bridge proximity. A true salt bridge
+# is a side-chain-atom contact (typically < 4 A between the charged groups),
+# but only backbone CA coordinates are available here; a longer CA-CA radius
+# is a deliberately generous envelope so an extended Arg side chain (which can
+# reach several A past its own CA) is not missed. This over-calls some
+# non-bridging proximity and under-calls bridges between residues whose side
+# chains point away from each other -- a heuristic, not a validated geometric
+# criterion, same status as contact_density_8a below.
+SALT_BRIDGE_RADIUS = 8.0
 
 
 def load_parser():
@@ -113,6 +130,41 @@ def ca_coordinates(pdb_text: str):
     return coords
 
 
+def residue_names(pdb_text: str):
+    """Return three-letter residue codes by residue number, from CA atom lines."""
+    names = {}
+    for line in pdb_text.splitlines():
+        if not line.startswith("ATOM") or line[12:16].strip() != "CA":
+            continue
+        try:
+            number = int(line[22:26])
+        except ValueError:
+            continue
+        names[number] = line[17:20].strip()
+    return names
+
+
+def salt_bridge_partner(position, coords, residues):
+    """Return the nearest oppositely-charged residue number within
+    SALT_BRIDGE_RADIUS of `position`, or None if `position` isn't charged or
+    has no such partner. See SALT_BRIDGE_RADIUS for the CA-CA proxy caveat."""
+    charge = residues.get(position)
+    if charge not in POSITIVE_RESIDUES and charge not in NEGATIVE_RESIDUES:
+        return None
+    if position not in coords:
+        return None
+    opposite = NEGATIVE_RESIDUES if charge in POSITIVE_RESIDUES else POSITIVE_RESIDUES
+    x, y, z = coords[position]
+    best_partner, best_dist2 = None, SALT_BRIDGE_RADIUS ** 2
+    for other, (ox, oy, oz) in coords.items():
+        if other == position or residues.get(other) not in opposite:
+            continue
+        dist2 = (x - ox) ** 2 + (y - oy) ** 2 + (z - oz) ** 2
+        if dist2 <= best_dist2:
+            best_partner, best_dist2 = other, dist2
+    return best_partner
+
+
 def secondary_structure_by_residue(pdb_text: str):
     """Assign C3 DSSP states from backbone coordinates with local PyDSSP.
 
@@ -170,7 +222,8 @@ def cached_entry(accession, parser, cache_dir: Path):
 
 
 def structural_features(accession, parser):
-    """Return RSA/pLDDT/coords evidence. Failures are reported, never converted to zero exposure."""
+    """Return RSA/pLDDT/coords/residue-identity evidence. Failures are reported,
+    never converted to zero exposure."""
     try:
         rsa, pdb_url = parser.alphafold_rsa(accession)
         pdb_text = parser.get(pdb_url, "text/plain")
@@ -179,9 +232,10 @@ def structural_features(accession, parser):
         plddt = plddt_by_residue(pdb_text)
         secondary = secondary_structure_by_residue(pdb_text)
         coords = ca_coordinates(pdb_text)
-        return rsa, plddt, secondary, coords, pdb_url, None
+        residues = residue_names(pdb_text)
+        return rsa, plddt, secondary, coords, residues, pdb_url, None
     except RuntimeError as exc:
-        return {}, {}, {}, {}, "", str(exc)
+        return {}, {}, {}, {}, {}, "", str(exc)
 
 
 def cached_structural_features(accession, parser, cache_dir: Path):
@@ -192,20 +246,25 @@ def cached_structural_features(accession, parser, cache_dir: Path):
     cache_path = cache_dir / f"{accession.upper()}.json"
     if cache_path.exists():
         cached = json.loads(cache_path.read_text(encoding="utf-8"))
-        return (
-            {int(k): v for k, v in cached["rsa"].items()},
-            {int(k): v for k, v in cached["plddt"].items()},
-            {int(k): v for k, v in cached["secondary"].items()},
-            {int(k): tuple(v) for k, v in cached["coords"].items()},
-            cached["structure_source"], cached["structure_error"],
-        )
-    rsa, plddt, secondary, coords, structure_source, structure_error = structural_features(accession, parser)
+        if "residues" in cached:
+            return (
+                {int(k): v for k, v in cached["rsa"].items()},
+                {int(k): v for k, v in cached["plddt"].items()},
+                {int(k): v for k, v in cached["secondary"].items()},
+                {int(k): tuple(v) for k, v in cached["coords"].items()},
+                {int(k): v for k, v in cached["residues"].items()},
+                cached["structure_source"], cached["structure_error"],
+            )
+        # Cache written before residue identities were added -- recompute and
+        # overwrite rather than error on the missing key.
+    rsa, plddt, secondary, coords, residues, structure_source, structure_error = structural_features(accession, parser)
     cache_path.write_text(json.dumps({
         "rsa": rsa, "plddt": plddt, "secondary": secondary,
         "coords": {k: list(v) for k, v in coords.items()},
+        "residues": residues,
         "structure_source": structure_source, "structure_error": structure_error,
     }, sort_keys=True) + "\n", encoding="utf-8")
-    return rsa, plddt, secondary, coords, structure_source, structure_error
+    return rsa, plddt, secondary, coords, residues, structure_source, structure_error
 
 
 def feature_row(row, parser, cache_dir, structural_cache_dir, with_rsa):
@@ -246,9 +305,9 @@ def feature_row(row, parser, cache_dir, structural_cache_dir, with_rsa):
         if left is not None and left <= end + radius and right >= start - radius:
             (glyco if f.get("type") == "Glycosylation" else modified).append(f)
 
-    rsa, plddt, secondary, coords, structure_source, structure_error = ({}, {}, {}, {}, "", None)
+    rsa, plddt, secondary, coords, residues, structure_source, structure_error = ({}, {}, {}, {}, {}, "", None)
     if with_rsa:
-        rsa, plddt, secondary, coords, structure_source, structure_error = cached_structural_features(accession, parser, structural_cache_dir)
+        rsa, plddt, secondary, coords, residues, structure_source, structure_error = cached_structural_features(accession, parser, structural_cache_dir)
         if structure_error:
             gaps.append("RSA/pLDDT unavailable: " + structure_error)
     else:
@@ -281,6 +340,9 @@ def feature_row(row, parser, cache_dir, structural_cache_dir, with_rsa):
             if any((x - wx)**2 + (y - wy)**2 + (z - wz)**2 <= 64.0 for wx, wy, wz in window_coords):
                 contact_count += 1
     contact_density_8a = str(contact_count) if window_coords else ""
+
+    p1_salt_bridge_partner = salt_bridge_partner(p1, coords, residues) if p1 else None
+    p1prime_salt_bridge_partner = salt_bridge_partner(p1prime, coords, residues) if p1prime else None
 
     plddt_mean_val = mean(window_plddt) if window_plddt else None
     robustness = "Unknown"
@@ -316,6 +378,8 @@ def feature_row(row, parser, cache_dir, structural_cache_dir, with_rsa):
         "ss_helix_fraction": f"{window_ss.count('H') / len(window_ss):.3f}" if window_ss else "",
         "ss_strand_fraction": f"{window_ss.count('E') / len(window_ss):.3f}" if window_ss else "",
         "ss_loop_fraction": f"{window_ss.count('C') / len(window_ss):.3f}" if window_ss else "",
+        "p1_salt_bridge_partner": p1_salt_bridge_partner or "",
+        "p1prime_salt_bridge_partner": p1prime_salt_bridge_partner or "",
         "structure_source": structure_source, "evidence_gaps": " | ".join(gaps) or "-",
         "warnings": " | ".join(warnings) or "-", "retrieved_at": dt.date.today().isoformat(),
     }
