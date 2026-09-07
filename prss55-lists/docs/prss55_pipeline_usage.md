@@ -95,9 +95,16 @@ python3 scripts/extract_prss55_site_features.py \
   --with-rsa
 ```
 
-The first run retrieves UniProt records into `cache/uniprot/`. Inspect every row
-with a sequence mismatch, processing overlap, unknown topology, missing
-structure, or incomplete structural coverage before proceeding.
+The first run retrieves UniProt records into `cache/uniprot/`. With `--with-rsa`,
+AlphaFold/RSA/secondary-structure results are cached per accession into
+`cache/structural/` (override with `--structural-cache-dir`) — structural
+evidence is a property of the protein, not the individual site, so a protein
+with many candidate sites is only fetched and DSSP-assigned once, not once per
+site. Progress (`[i/N] accession source_id`) is printed to stderr as each row
+is processed, since a large input can take a while on the first, cold-cache
+run. Inspect every row with a sequence mismatch, processing overlap, unknown
+topology, missing structure, or incomplete structural coverage before
+proceeding.
 
 ## Run deterministic triage
 

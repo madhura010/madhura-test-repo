@@ -61,7 +61,10 @@ python3 scripts/prepare_prss55_predictions.py \
   --output data/prss55_predicted_sites.csv
 
 # 2. Validate sequence coordinates, retrieve annotations, compute RSA/pLDDT,
-#    and assign DSSP-compatible secondary structure.
+#    and assign DSSP-compatible secondary structure. UniProt entries and
+#    AlphaFold/RSA/secondary-structure results are cached per accession
+#    (cache/uniprot/, cache/structural/), so proteins with multiple candidate
+#    sites are only fetched once. Progress is printed to stderr.
 PYTHONPATH=.vendor python3 scripts/extract_prss55_site_features.py \
   --input data/prss55_predicted_sites.csv \
   --output results/prss55_site_features.tsv \

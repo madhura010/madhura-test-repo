@@ -184,7 +184,31 @@ def structural_features(accession, parser):
         return {}, {}, {}, {}, "", str(exc)
 
 
-def feature_row(row, parser, cache_dir, with_rsa):
+def cached_structural_features(accession, parser, cache_dir: Path):
+    """Structural evidence is per-protein, not per-site; cache it by accession so
+    proteins with many candidate sites don't re-fetch AlphaFold and re-run PyDSSP
+    once per site."""
+    cache_dir.mkdir(parents=True, exist_ok=True)
+    cache_path = cache_dir / f"{accession.upper()}.json"
+    if cache_path.exists():
+        cached = json.loads(cache_path.read_text(encoding="utf-8"))
+        return (
+            {int(k): v for k, v in cached["rsa"].items()},
+            {int(k): v for k, v in cached["plddt"].items()},
+            {int(k): v for k, v in cached["secondary"].items()},
+            {int(k): tuple(v) for k, v in cached["coords"].items()},
+            cached["structure_source"], cached["structure_error"],
+        )
+    rsa, plddt, secondary, coords, structure_source, structure_error = structural_features(accession, parser)
+    cache_path.write_text(json.dumps({
+        "rsa": rsa, "plddt": plddt, "secondary": secondary,
+        "coords": {k: list(v) for k, v in coords.items()},
+        "structure_source": structure_source, "structure_error": structure_error,
+    }, sort_keys=True) + "\n", encoding="utf-8")
+    return rsa, plddt, secondary, coords, structure_source, structure_error
+
+
+def feature_row(row, parser, cache_dir, structural_cache_dir, with_rsa):
     entry = cached_entry(row["accession"], parser, cache_dir)
     accession = entry["primaryAccession"]
     sequence = entry.get("sequence", {}).get("value", "")
@@ -224,7 +248,7 @@ def feature_row(row, parser, cache_dir, with_rsa):
 
     rsa, plddt, secondary, coords, structure_source, structure_error = ({}, {}, {}, {}, "", None)
     if with_rsa:
-        rsa, plddt, secondary, coords, structure_source, structure_error = structural_features(accession, parser)
+        rsa, plddt, secondary, coords, structure_source, structure_error = cached_structural_features(accession, parser, structural_cache_dir)
         if structure_error:
             gaps.append("RSA/pLDDT unavailable: " + structure_error)
     else:
@@ -302,14 +326,18 @@ def main():
     parser_args.add_argument("--input", required=True, type=Path, help="Predicted-site CSV; use data/prss55_predicted_sites.template.csv")
     parser_args.add_argument("--output", required=True, type=Path, help="Output TSV")
     parser_args.add_argument("--cache-dir", type=Path, default=ROOT / "cache" / "uniprot")
+    parser_args.add_argument("--structural-cache-dir", type=Path, default=ROOT / "cache" / "structural",
+                              help="Per-accession cache for AlphaFold/RSA/secondary-structure results, so proteins with multiple candidate sites are only fetched once")
     parser_args.add_argument("--with-rsa", action="store_true", help="Fetch AlphaFold models and compute RSA/pLDDT; slower")
     args = parser_args.parse_args()
     parser = load_parser()
+    sites = list(read_sites(args.input))
     rows = []
-    for line, site in read_sites(args.input):
+    for i, (line, site) in enumerate(sites, start=1):
         site["_line"] = line
+        print(f"[{i}/{len(sites)}] {site.get('accession', '')} {site.get('source_id', '')}", file=sys.stderr)
         try:
-            rows.append(feature_row(site, parser, args.cache_dir, args.with_rsa))
+            rows.append(feature_row(site, parser, args.cache_dir, args.structural_cache_dir, args.with_rsa))
         except RuntimeError as exc:
             rows.append({column: "" for column in OUTPUT_COLUMNS} | {"source_id": site.get("source_id", f"line_{line}"), "accession": site["accession"], "warnings": str(exc), "evidence_gaps": "UniProt retrieval failed"})
     args.output.parent.mkdir(parents=True, exist_ok=True)
