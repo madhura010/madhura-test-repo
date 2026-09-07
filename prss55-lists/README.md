@@ -98,6 +98,10 @@ python3 scripts/triage_prss55_sites.py \
   the structural-exposure evidence, based on AlphaFold pLDDT;
 - PyDSSP three-state annotation: `H` alpha helix, `E` beta strand, `C` loop or
   other; and fractions of each state over the window;
+- `p1_salt_bridge_partner` / `p1prime_salt_bridge_partner`: residue number of
+  the nearest oppositely-charged residue within 8 Å (CA–CA) of P1/P1′, if any —
+  a substrate-side electrostatic proxy for whether the charged P1 residue is
+  already intramolecularly ion-paired rather than free to engage the protease;
 - PTM/glycosylation, disulfide, topology, and evidence-gap flags;
 - exact AlphaFold model URL used for the calculation.
 
@@ -106,15 +110,24 @@ python3 scripts/triage_prss55_sites.py \
 - `ELIGIBLE`: no automatic sequence, processing, or membrane conflict, and none
   of the `REVIEW` conditions below apply;
 - `REVIEW`: structurally possible but requiring human interpretation —
-  raised for a missing topology annotation, nearby glycosylation or modified
-  residue, disulfide overlap, an unresolved P1/P1′ bond, a predicted
-  helix/strand at P1 or P1′ (`ss_p1`/`ss_p1prime`), elevated local contact
-  density (`contact_density_8a >= 20`, a provisional heuristic), `Low`
-  exposure robustness, multiple annotated protein isoforms
-  (`has_multiple_isoforms`), or overlap with an annotated domain/motif/region
-  (`domain_annotations`);
+  raised for a missing topology annotation (skipped for proteins whose
+  `subcellular_location` is purely soluble/secreted with no membrane term,
+  since those have no membrane sidedness for UniProt to annotate in the first
+  place), nearby glycosylation or modified residue, disulfide overlap, an
+  unresolved P1/P1′ bond, a predicted helix/strand at P1 or P1′
+  (`ss_p1`/`ss_p1prime`), elevated local contact density
+  (`contact_density_8a >= 20`, a provisional heuristic), `Low` exposure
+  robustness, multiple annotated protein isoforms (`has_multiple_isoforms`),
+  overlap with an annotated domain/motif/region (`domain_annotations`), a
+  possible intramolecular salt bridge at P1/P1′ (`p1_salt_bridge_partner` /
+  `p1prime_salt_bridge_partner`, another provisional heuristic), or a
+  secretory-pathway-only subcellular location (Golgi/ER/lysosome) with no
+  accompanying Secreted/surface annotation;
 - `EXCLUDE`: sequence mismatch, signal/propeptide overlap, membrane overlap,
-  cytoplasmic topology annotation, or cytosolic/nuclear subcellular location.
+  cytoplasmic topology annotation, or a subcellular location that is an
+  unambiguous intracellular compartment (cytoplasm, nucleus, chromosome,
+  mitochondrion, peroxisome) with no accompanying Secreted/surface/acrosome
+  term.
 
 ## Required review before selecting wet-lab targets
 

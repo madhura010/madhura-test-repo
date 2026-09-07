@@ -30,19 +30,47 @@ The output also includes:
 - `has_multiple_isoforms`: whether the protein has multiple known isoforms,
   extracted from UniProt `ALTERNATIVE PRODUCTS` comments;
 - `subcellular_location`: UniProt-annotated subcellular compartment(s) for the
-  protein (used by the triage step to exclude cytosolic/nuclear proteins);
+  protein (used by the triage step to judge accessibility to a surface-anchored
+  ectoenzyme — see below);
 - `contact_density_8a`: count of CA atoms within 8 Å of the 8-mer window,
   penalizing sites that are nominally solvent-exposed but sterically buried;
 - `exposure_robustness`: confidence label (`Low`, `Medium`, or `Unknown`) for
-  the structural-exposure evidence, based on AlphaFold pLDDT.
+  the structural-exposure evidence, based on AlphaFold pLDDT;
+- `p1_salt_bridge_partner` / `p1prime_salt_bridge_partner`: residue number of
+  the nearest oppositely-charged residue within 8 Å (CA–CA proxy) of P1/P1′,
+  if the P1/P1′ residue itself is charged (Arg/Lys/Asp/Glu) and has one.
+  Empty otherwise. This is a substrate-side electrostatic signal only — it
+  does not model PRSS55's own S1 pocket, since PRSS55 has no solved structure
+  and its own membrane topology is itself uncertain (see the design doc); it
+  only asks whether the charged P1 residue is already ion-paired within the
+  folded substrate rather than free to engage a protease.
 
 `scripts/triage_prss55_sites.py` is a deterministic rule-based analysis step.
-It excludes sequence/processing/transmembrane conflicts, cytoplasmic topology
-annotations, and cytosolic/nuclear subcellular locations. Everything
-structural is a `REVIEW` flag rather than a hard exclusion, per the design
-doc's ranking rules (§6): a predicted helix/strand at P1 or P1′
+
+Subcellular-location handling (`subcellular_verdict()`) matches per
+semicolon-separated location term rather than the whole string, because a
+naive substring check on `"cytoplasm"` also matches `"Cytoplasmic vesicle,
+secretory vesicle, acrosome"` — a distinct membrane-bound compartment, not
+bulk cytosol. It hard-excludes unambiguous intracellular compartments with no
+route to the extracellular space (`Cytoplasm`, `Nucleus`, `Chromosome`,
+`Mitochondrion`, `Peroxisome`), unless an accessible term (`Secreted`, `Cell
+membrane`, `Cell surface`, `extracellular`, `acrosome`) also appears anywhere
+in the same annotation. Secretory-pathway compartments a protein may only be
+transiting through (`Golgi apparatus`, `Endoplasmic reticulum`, `Lysosome`)
+are a `REVIEW` flag, not an exclusion, since residency there isn't always
+permanent. Separately, `has_no_membrane_topology_question()` suppresses the
+"no topology annotation" review flag specifically for proteins whose location
+is purely soluble/secreted with no membrane term at all — such a protein never
+crosses a membrane, so it has no cytoplasmic-vs-extracellular sidedness for
+UniProt to annotate in the first place, and a missing `Topological domain`
+feature there is expected, not a genuine gap.
+
+Everything structural is a `REVIEW` flag rather than a hard exclusion, per the
+design doc's ranking rules (§6): a predicted helix/strand at P1 or P1′
 (`ss_p1`/`ss_p1prime`), elevated local contact density (`contact_density_8a >=
-20` — a provisional heuristic, not experimentally calibrated), `Low` exposure
+20` — a provisional heuristic, not experimentally calibrated), a possible
+intramolecular salt bridge at P1/P1′ (`p1_salt_bridge_partner` /
+`p1prime_salt_bridge_partner` — likewise provisional), `Low` exposure
 robustness, multiple annotated protein isoforms (`has_multiple_isoforms`), and
 overlap with an annotated domain/motif/region (`domain_annotations`) all land
 as review flags, alongside the existing glycosylation/PTM/disulfide/topology
@@ -102,8 +130,11 @@ evidence is a property of the protein, not the individual site, so a protein
 with many candidate sites is only fetched and DSSP-assigned once, not once per
 site. Progress (`[i/N] accession source_id`) is printed to stderr as each row
 is processed, since a large input can take a while on the first, cold-cache
-run. Inspect every row with a sequence mismatch, processing overlap, unknown
-topology, missing structure, or incomplete structural coverage before
+run. Residue identity (needed for the salt-bridge check) is cached alongside
+RSA/pLDDT/secondary structure; a `cache/structural/` entry written before
+that field existed is detected and transparently recomputed once, not treated
+as an error. Inspect every row with a sequence mismatch, processing overlap,
+unknown topology, missing structure, or incomplete structural coverage before
 proceeding.
 
 ## Run deterministic triage
@@ -117,8 +148,9 @@ python3 scripts/triage_prss55_sites.py \
 `ELIGIBLE` means no automatic structural conflict was found; `REVIEW` means
 manual structural/topology interpretation is required (see the flag list
 above); `EXCLUDE` means a sequence-processing, membrane, cytoplasmic
-topology, or cytosolic/nuclear subcellular-location conflict was found. None
-means confirmed substrate.
+topology, or unambiguous intracellular subcellular-location conflict was
+found (cytoplasm, nucleus, chromosome, mitochondrion, or peroxisome, with no
+accompanying Secreted/surface/acrosome term). None means confirmed substrate.
 
 ## Required human review before ordering proteins
 
