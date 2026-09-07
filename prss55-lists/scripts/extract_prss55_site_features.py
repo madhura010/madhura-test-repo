@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import argparse
 import csv
-import datetime as d
+import datetime as dt
 import importlib.util
 import json
 import sys
@@ -70,7 +70,7 @@ def bounds(feature, parser):
 
 def overlaps(start, end, feature, parser):
     left, right = bounds(feature, parser)
-    return left is not None and left <= end and right >= star
+    return left is not None and left <= end and right >= start
 
 
 def descriptions(features):

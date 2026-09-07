@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Create an auditable PRSS55 candidate shortlist from extracted site features.
 
-This is a deterministic analysis step, not a fitted or retrained model. I
+This is a deterministic analysis step, not a fitted or retrained model. It
 filters structural incompatibilities, records unresolved evidence, and ranks the
 remaining candidates only by the supplied upstream cleavage probability.
 """
@@ -55,7 +55,7 @@ def main():
         if ss_p1 in ("H", "E") or ss_p1prime in ("H", "E"):
             review.append("P1/P1' bond falls within a predicted helix/strand rather than coil/loop")
 
-        # Heuristic cutoff on CA atoms within 8 A of the window; no
+        # Heuristic cutoff on CA atoms within 8 A of the window; not
         # experimentally calibrated. Revisit once experimental cleavage
         # outcomes are available to validate a proper threshold.
         contact_density = row.get("contact_density_8a", "")
