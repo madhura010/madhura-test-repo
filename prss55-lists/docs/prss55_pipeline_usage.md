@@ -38,9 +38,18 @@ The output also includes:
 
 `scripts/triage_prss55_sites.py` is a deterministic rule-based analysis step.
 It excludes sequence/processing/transmembrane conflicts, cytoplasmic topology
-annotations, and cytosolic/nuclear subcellular locations. It flags unresolved
-evidence, then sorts eligible candidates by the supplied `prob_cleavage`. It
-does not fit, retrain, calibrate, or create an additional ML model.
+annotations, and cytosolic/nuclear subcellular locations. Everything
+structural is a `REVIEW` flag rather than a hard exclusion, per the design
+doc's ranking rules (§6): a predicted helix/strand at P1 or P1′
+(`ss_p1`/`ss_p1prime`), elevated local contact density (`contact_density_8a >=
+20` — a provisional heuristic, not experimentally calibrated), `Low` exposure
+robustness, multiple annotated protein isoforms (`has_multiple_isoforms`), and
+overlap with an annotated domain/motif/region (`domain_annotations`) all land
+as review flags, alongside the existing glycosylation/PTM/disulfide/topology
+flags. `family_annotations` (Pfam/InterPro family membership) is deliberately
+not used for triage — it is protein-level, not site-level, evidence. It sorts
+eligible candidates by the supplied `prob_cleavage`. It does not fit, retrain,
+calibrate, or create an additional ML model.
 
 ## Input schema
 
@@ -99,9 +108,10 @@ python3 scripts/triage_prss55_sites.py \
 ```
 
 `ELIGIBLE` means no automatic structural conflict was found; `REVIEW` means
-manual structural/topology interpretation is required; `EXCLUDE` means a
-sequence-processing, membrane, cytoplasmic topology, or cytosolic/nuclear
-subcellular-location conflict was found. None means confirmed substrate.
+manual structural/topology interpretation is required (see the flag list
+above); `EXCLUDE` means a sequence-processing, membrane, cytoplasmic
+topology, or cytosolic/nuclear subcellular-location conflict was found. None
+means confirmed substrate.
 
 ## Required human review before ordering proteins
 

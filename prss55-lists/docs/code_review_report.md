@@ -20,6 +20,16 @@ The implemented scripts omit several explicit requirements mandated by the desig
   `contact_density_8a` (CA atom contacts within 8 Å),
   `exposure_robustness` (Low/Medium/Unknown based on pLDDT).
   Subcellular-location exclusions added to `triage_prss55_sites.py`.
+  **Follow-up (resolved)**: the four computed values were initially passed
+  through to the output TSV but not consumed by triage logic. `contact_density_8a`,
+  `exposure_robustness`, `ss_p1`/`ss_p1prime`, and `has_multiple_isoforms` are
+  now wired into `triage_prss55_sites.py` as `REVIEW` flags (not hard
+  exclusions, per §6 of the design doc — only sequence/processing/membrane
+  conflicts are `EXCLUDE`). `domain_annotations` was also added as a `REVIEW`
+  flag, covering the design doc's "domain context" criterion (§4) which had no
+  implementation. `family_annotations` was deliberately left unused for
+  triage: it is protein-family membership, not site-level evidence, and would
+  flag nearly every row without adding signal.
 
 ## 2. At the edges (Topology validation gap) — ✅ RESOLVED
 
@@ -54,3 +64,10 @@ The implemented scripts omit several explicit requirements mandated by the desig
 - **Issue**: `CLAUDE.md` simply points to `@AGENTS.md`, but `AGENTS.md` does not exist in the root directory.
 - **Change**: Create `AGENTS.md` or remove the broken pointer.
 - **Status**: Not yet addressed. Low priority; does not affect pipeline correctness.
+
+## 6. Under-committed decision (Isoform provenance dropped) — ✅ RESOLVED
+
+- **Trigger**: An upstream `seq_id` carrying an isoform-specific accession (e.g. `sp|Q6UWB4-2|PRS55_HUMAN`).
+- **Issue**: `prepare_prss55_predictions.py` unconditionally hardcoded `source_isoform` to `""`, even when `accession()` had already parsed an isoform suffix out of the `seq_id`. This contradicts §2 of the design doc, which requires recording the "reviewed isoform" per site. Confirmed via live UniProt API that isoform-suffixed accessions (`Q6UWB4-2.json`) resolve correctly, including their own `ALTERNATIVE PRODUCTS` comment, so downstream feature extraction was never at risk — only the audit-trail field was silently dropped.
+- **Change**: Derive `source_isoform` from the parsed accession's `-N` suffix instead of hardcoding blank.
+- **Resolution**: Added `isoform_suffix()` in `prepare_prss55_predictions.py` and used it to populate `source_isoform`. Verified against a canonical accession (blank, unchanged) and an isoform-suffixed accession (`Q6UWB4-2` → `source_isoform: 2`); the real dataset (`data/prss55_predictions.raw.tsv`, no isoform-suffixed accessions) produces identical output to before the change.

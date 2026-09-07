@@ -100,8 +100,16 @@ python3 scripts/triage_prss55_sites.py \
 
 `results/prss55_triaged_sites.tsv` adds:
 
-- `ELIGIBLE`: no automatic sequence, processing, or membrane conflict;
-- `REVIEW`: structurally possible but requiring human interpretation;
+- `ELIGIBLE`: no automatic sequence, processing, or membrane conflict, and none
+  of the `REVIEW` conditions below apply;
+- `REVIEW`: structurally possible but requiring human interpretation —
+  raised for a missing topology annotation, nearby glycosylation or modified
+  residue, disulfide overlap, an unresolved P1/P1′ bond, a predicted
+  helix/strand at P1 or P1′ (`ss_p1`/`ss_p1prime`), elevated local contact
+  density (`contact_density_8a >= 20`, a provisional heuristic), `Low`
+  exposure robustness, multiple annotated protein isoforms
+  (`has_multiple_isoforms`), or overlap with an annotated domain/motif/region
+  (`domain_annotations`);
 - `EXCLUDE`: sequence mismatch, signal/propeptide overlap, membrane overlap,
   cytoplasmic topology annotation, or cytosolic/nuclear subcellular location.
 

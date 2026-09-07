@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import argparse
 import csv
-import datetime as dt
+import datetime as d
 import importlib.util
 import json
 import sys
@@ -70,7 +70,7 @@ def bounds(feature, parser):
 
 def overlaps(start, end, feature, parser):
     left, right = bounds(feature, parser)
-    return left is not None and left <= end and right >= start
+    return left is not None and left <= end and right >= star
 
 
 def descriptions(features):
@@ -247,7 +247,7 @@ def feature_row(row, parser, cache_dir, with_rsa):
                 if loc:
                     locations.append(loc)
     subcellular_location = "; ".join(locations) or "-"
-    
+
     window_coords = [coords[p] for p in range(start, end + 1) if p in coords]
     contact_count = 0
     if window_coords:
@@ -257,15 +257,15 @@ def feature_row(row, parser, cache_dir, with_rsa):
             if any((x - wx)**2 + (y - wy)**2 + (z - wz)**2 <= 64.0 for wx, wy, wz in window_coords):
                 contact_count += 1
     contact_density_8a = str(contact_count) if window_coords else ""
-    
+
     plddt_mean_val = mean(window_plddt) if window_plddt else None
     robustness = "Unknown"
     if plddt_mean_val is not None:
         robustness = "Medium (confident AlphaFold region)" if plddt_mean_val >= 70 else "Low (pLDDT < 70)"
-        
+
     isoform_comments = [c for c in entry.get("comments", []) if c.get("commentType") == "ALTERNATIVE PRODUCTS"]
     has_multiple_isoforms = "true" if any(len(c.get("isoforms", [])) > 1 for c in isoform_comments) else "false"
-    
+
     return {
         "source_id": row.get("source_id", "") or f"line_{row.get('_line', '')}",
         "accession": row["accession"], "resolved_accession": accession,

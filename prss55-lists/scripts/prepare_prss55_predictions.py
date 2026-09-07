@@ -17,6 +17,12 @@ def accession(seq_id):
     raise ValueError(f"Cannot extract UniProt accession from seq_id: {seq_id}")
 
 
+def isoform_suffix(acc):
+    """Return the isoform number from an accession like 'Q6UWB4-2', else ''."""
+    base, sep, suffix = acc.partition("-")
+    return suffix if sep else ""
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--input", required=True, type=Path, help="TSV or CSV in the supplied prediction-table format")
@@ -35,9 +41,10 @@ def main():
             start, end = int(row["start_pos"]), int(row["end_pos"])
             if len(sequence) != 8 or end - start + 1 != 8:
                 raise ValueError(f"Line {line}: positions and 8-mer length disagree")
-            normalized.append({"accession": accession(row["seq_id"].strip()), "site_start": start,
+            acc = accession(row["seq_id"].strip())
+            normalized.append({"accession": acc, "site_start": start,
                                "eight_mer": sequence, "p1_offset": args.p1_offset or "", "model_score": row["prob_cleavage"],
-                               "source_isoform": "", "source_id": f"{row['seq_id']}|window_{row['window_idx']}"})
+                               "source_isoform": isoform_suffix(acc), "source_id": f"{row['seq_id']}|window_{row['window_idx']}"})
     args.output.parent.mkdir(parents=True, exist_ok=True)
     fields = ["accession", "site_start", "eight_mer", "p1_offset", "model_score", "source_isoform", "source_id"]
     with args.output.open("w", newline="", encoding="utf-8") as handle:
