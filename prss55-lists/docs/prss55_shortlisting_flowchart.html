@@ -287,7 +287,7 @@
     </div>
     <figure>
       <div class="diagram-scroll">
-        <svg id="decision-svg" viewBox="0 0 1360 1150" role="img" aria-label="Decision flowchart: an extracted site row first passes a hard exclusion gate of five rules; any true excludes it. Surviving rows pass a review-flag gate of several grouped conditions; any true sends the site to REVIEW, none to ELIGIBLE. All three outcomes converge into one ranked output file, sorted ELIGIBLE before REVIEW before EXCLUDE, then by prob_cleavage within each tier.">
+        <svg id="decision-svg" viewBox="0 0 1360 1220" role="img" aria-label="Decision flowchart: an extracted site row first passes a hard exclusion gate of five rules; any true excludes it. Surviving rows pass a review-flag gate of several grouped conditions; any true sends the site to REVIEW, none to ELIGIBLE. All three outcomes converge into one ranked output file, sorted ELIGIBLE before REVIEW before EXCLUDE, then by prob_cleavage within each tier.">
           <defs>
             <marker id="arrow2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
               <path d="M0,0 L10,5 L0,10 z" fill="var(--muted)"></path>
@@ -325,7 +325,7 @@
           <text class="outcome-text" text-anchor="middle" x="995" y="264" font-size="11">ranked last</text>
 
           <!-- Gate 2: review flags -->
-          <rect class="box-frame" x="140" y="398" width="720" height="352" rx="12"></rect>
+          <rect class="box-frame" x="140" y="398" width="720" height="417" rx="12"></rect>
           <text x="170" y="436" font-size="15.5" class="box-header">REVIEW FLAGS</text>
           <text x="170" y="454" font-size="12" class="box-sub">any TRUE sends the site to manual review &mdash; flags accumulate, none of them exclude</text>
           <line class="rule-line" x1="170" y1="466" x2="830" y2="466"></line>
@@ -338,42 +338,46 @@
           <text x="180" y="580" font-size="13" class="cluster-head">Structural heuristics &mdash; AlphaFold-derived, provisional</text>
           <text x="196" y="600" font-size="12">helix or strand (not coil / loop) at the P1 or P1&prime; bond &middot; PyDSSP</text>
           <text x="196" y="620" font-size="12">&ge;20 C&alpha; atoms within 8&#8491; of the window &middot; pLDDT &lt; 70 (low confidence)</text>
-          <text x="196" y="640" font-size="12">possible intramolecular salt bridge at P1/P1&prime; (C&alpha;&ndash;C&alpha; proxy, 8&#8491;)</text>
+          <text x="196" y="640" font-size="12">intramolecular salt bridge at P1/P1&prime; (C&alpha;&ndash;C&alpha; proxy, 8&#8491;, sequence neighbors excluded)</text>
 
           <text x="180" y="670" font-size="13" class="cluster-head">Bond definition</text>
           <text x="196" y="690" font-size="12">P1&ndash;P1&prime; position unresolved for this site</text>
 
-          <line class="flow-line" x1="500" y1="750" x2="500" y2="792" marker-end="url(#arrow2)"></line>
-          <text text-anchor="middle" class="branch-label" x="560" y="774">all false</text>
+          <text x="180" y="720" font-size="13" class="cluster-head">Sequence-only (no AlphaFold needed) &mdash; own columns: review-pro, review-p1</text>
+          <text x="196" y="740" font-size="12">Proline at P1&prime; (mechanistic) or elsewhere in the window (context-dependent)</text>
+          <text x="196" y="760" font-size="12">P1 is neither basic (Arg/Lys) nor coil-favoring (Gly/Ser/Asn/Asp)</text>
 
-          <line class="flow-line" x1="860" y1="574" x2="1113" y2="574" marker-end="url(#arrow2)"></line>
-          <text text-anchor="middle" class="branch-label" x="985" y="560">any true</text>
+          <line class="flow-line" x1="500" y1="815" x2="500" y2="857" marker-end="url(#arrow2)"></line>
+          <text text-anchor="middle" class="branch-label" x="560" y="839">all false</text>
+
+          <line class="flow-line" x1="860" y1="606" x2="1113" y2="606" marker-end="url(#arrow2)"></line>
+          <text text-anchor="middle" class="branch-label" x="985" y="592">any true</text>
 
           <!-- REVIEW outcome -->
-          <rect class="outcome-review" x="1118" y="529" width="190" height="90" rx="10"></rect>
-          <text class="outcome-text" text-anchor="middle" x="1213" y="567" font-size="15" font-weight="700">REVIEW</text>
-          <text class="outcome-text" text-anchor="middle" x="1213" y="587" font-size="11">flags recorded,</text>
-          <text class="outcome-text" text-anchor="middle" x="1213" y="601" font-size="11">human interprets</text>
+          <rect class="outcome-review" x="1118" y="561" width="190" height="90" rx="10"></rect>
+          <text class="outcome-text" text-anchor="middle" x="1213" y="599" font-size="15" font-weight="700">REVIEW</text>
+          <text class="outcome-text" text-anchor="middle" x="1213" y="619" font-size="11">flags recorded,</text>
+          <text class="outcome-text" text-anchor="middle" x="1213" y="633" font-size="11">human interprets</text>
 
           <!-- ELIGIBLE outcome -->
-          <rect class="outcome-eligible" x="400" y="798" width="200" height="80" rx="10"></rect>
-          <text class="outcome-text" text-anchor="middle" x="500" y="836" font-size="15" font-weight="700">ELIGIBLE</text>
-          <text class="outcome-text" text-anchor="middle" x="500" y="856" font-size="11">no automatic conflict</text>
+          <rect class="outcome-eligible" x="400" y="863" width="200" height="80" rx="10"></rect>
+          <text class="outcome-text" text-anchor="middle" x="500" y="901" font-size="15" font-weight="700">ELIGIBLE</text>
+          <text class="outcome-text" text-anchor="middle" x="500" y="921" font-size="11">no automatic conflict</text>
 
           <!-- convergence -->
-          <line class="flow-line" x1="500" y1="878" x2="500" y2="986" marker-end="url(#arrow2)"></line>
-          <line class="flow-line" x1="995" y1="282" x2="995" y2="986" marker-end="url(#arrow2)"></line>
-          <line class="flow-line" x1="1213" y1="619" x2="1213" y2="986" marker-end="url(#arrow2)"></line>
+          <line class="flow-line" x1="500" y1="943" x2="500" y2="1051" marker-end="url(#arrow2)"></line>
+          <line class="flow-line" x1="995" y1="282" x2="995" y2="1051" marker-end="url(#arrow2)"></line>
+          <line class="flow-line" x1="1213" y1="651" x2="1213" y2="1051" marker-end="url(#arrow2)"></line>
 
           <!-- Final -->
-          <rect class="box-frame" x="140" y="990" width="1160" height="120" rx="12"></rect>
-          <text text-anchor="middle" x="720" y="1028" font-size="16" class="box-header">Ranked, auditable output</text>
-          <text text-anchor="middle" x="720" y="1052" font-size="12.5">sorted ELIGIBLE &rarr; REVIEW &rarr; EXCLUDE, then by prob_cleavage (desc) within each tier</text>
-          <text text-anchor="middle" x="720" y="1074" font-size="12.5">every row keeps its exclusion_reason / review_reason &mdash; nothing is deleted</text>
-          <text text-anchor="middle" class="mono box-sub" x="720" y="1094" font-size="11.5">&rarr; results/prss55_triaged_sites.tsv</text>
+          <rect class="box-frame" x="140" y="1055" width="1160" height="120" rx="12"></rect>
+          <text text-anchor="middle" x="720" y="1093" font-size="16" class="box-header">Ranked, auditable output</text>
+          <text text-anchor="middle" x="720" y="1117" font-size="12.5">sorted ELIGIBLE &rarr; REVIEW &rarr; EXCLUDE, then by prob_cleavage (desc) within each tier</text>
+          <text text-anchor="middle" x="720" y="1139" font-size="12.5">every row keeps its exclusion_reason / review_reason &mdash; nothing is deleted</text>
+          <text text-anchor="middle" class="mono box-sub" x="720" y="1159" font-size="11.5">&rarr; results/prss55_triaged_sites.tsv</text>
         </svg>
       </div>
-      <figcaption>Figure 2. The full triage tree in <code>triage_prss55_sites.py</code>. Five hard-exclusion rules gate first; the review conditions (grouped into three clusters here) only ever add a flag, never remove a row. Subcellular-location matching is per location term, not the whole string &mdash; a protein marked <code>Secreted; Cytoplasmic vesicle, ...</code> is not excluded just because "cytoplasm" appears as a substring.</figcaption>
+      <figcaption>Figure 2. The full triage tree in <code>triage_prss55_sites.py</code>. Five hard-exclusion rules gate first; the review conditions (grouped into four clusters here) only ever add a flag, never remove a row. Subcellular-location matching is per location term, not the whole string &mdash; a protein marked <code>Secreted; Cytoplasmic vesicle, ...</code> is not excluded just because "cytoplasm" appears as a substring. The two sequence-only checks (Proline, P1 residue class) need no AlphaFold structure at all and land in their own <code>review-pro</code>/<code>review-p1</code> columns, independently filterable rather than only folded into the shared review text.</figcaption>
     </figure>
   </section>
 
@@ -417,10 +421,22 @@
             <td class="confidence">Review only &mdash; may be transiting through, not permanently resident</td>
           </tr>
           <tr>
-            <td>Exposure robustness</td>
+            <td>pLDDT confidence</td>
             <td class="type">AlphaFold pLDDT, computational</td>
             <td class="rule">pLDDT &ge; 70 &rarr; Medium &middot; &lt; 70 &rarr; Low &middot; no data &rarr; Unknown</td>
-            <td class="confidence">No "High" tier without an experimental structure</td>
+            <td class="confidence">Model confidence only, not exposure &mdash; renamed from <code>exposure_robustness</code>, which never read RSA and could label a confidently <em>buried</em> site "Medium"</td>
+          </tr>
+          <tr>
+            <td>P1 residue class</td>
+            <td class="type">Sequence only, deterministic</td>
+            <td class="rule">P1 is basic (Arg/Lys) and/or Chou-Fasman coil-favoring (Gly/Ser/Asn/Asp) &mdash; tracked as two independent columns, not merged</td>
+            <td class="confidence">Review only &mdash; sanity-checks the dataset's central-residue convention, which nothing upstream verifies per row</td>
+          </tr>
+          <tr>
+            <td>Proline near the bond</td>
+            <td class="type">Sequence only, deterministic</td>
+            <td class="rule">Proline at P1&prime; (own reason), or anywhere else in the 8-mer window (own reason)</td>
+            <td class="confidence">Review only &mdash; P1&prime; is a distinct mechanistic concern (no backbone N-H, elevated cis-bond population); window-level Proline is informational, not itself unfavorable</td>
           </tr>
           <tr>
             <td>Local contact density</td>
@@ -437,8 +453,8 @@
           <tr>
             <td>Intramolecular salt bridge</td>
             <td class="type">AlphaFold residue geometry, computational</td>
-            <td class="rule">A charged P1 or P1&prime; residue (Arg/Lys/Asp/Glu) has an oppositely-charged residue within 8&#8491; (C&alpha;&ndash;C&alpha; proxy)</td>
-            <td class="confidence">Provisional heuristic; substrate-side only &mdash; does not model PRSS55's own (unsolved) active site</td>
+            <td class="rule">A charged P1 or P1&prime; residue (Arg/Lys/Asp/Glu) has an oppositely-charged residue within 8&#8491; (C&alpha;&ndash;C&alpha; proxy), excluding sequence-adjacent residues</td>
+            <td class="confidence">Provisional heuristic; substrate-side only. Adjacent residues are excluded because their CA&ndash;CA distance is fixed by peptide-bond geometry regardless of real proximity &mdash; without this, P1/P1&prime; (always one position apart) would always trivially "match"</td>
           </tr>
           <tr>
             <td>PTM / glycan / disulfide proximity</td>
