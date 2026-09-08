@@ -34,8 +34,13 @@ The output also includes:
   ectoenzyme — see below);
 - `contact_density_8a`: count of CA atoms within 8 Å of the 8-mer window,
   penalizing sites that are nominally solvent-exposed but sterically buried;
-- `exposure_robustness`: confidence label (`Low`, `Medium`, or `Unknown`) for
-  the structural-exposure evidence, based on AlphaFold pLDDT;
+- `plddt_confidence`: confidence label (`Low`, `Medium`, or `Unknown`) for the
+  window's mean AlphaFold pLDDT — renamed from `exposure_robustness`, which
+  implied it measured whether the site is exposed. It doesn't: it's computed
+  purely from `window_plddt` and never reads the RSA columns. Model
+  confidence and solvent exposure are different questions — a site can be
+  confidently *buried* just as easily as confidently exposed. For actual
+  exposure, use `rsa_window_mean`/`rsa_window_min`;
 - `p1_salt_bridge_partner` / `p1prime_salt_bridge_partner`: residue number of
   the nearest oppositely-charged residue within 8 Å (CA–CA proxy) of P1/P1′,
   if the P1/P1′ residue itself is charged (Arg/Lys/Asp/Glu) and has one.
@@ -43,7 +48,23 @@ The output also includes:
   does not model PRSS55's own S1 pocket, since PRSS55 has no solved structure
   and its own membrane topology is itself uncertain (see the design doc); it
   only asks whether the charged P1 residue is already ion-paired within the
-  folded substrate rather than free to engage a protease.
+  folded substrate rather than free to engage a protease. Sequence-adjacent
+  residues (i, i+1) are excluded from the candidate search in
+  `salt_bridge_partner()`: their CA–CA distance is fixed at ~3.8 Å by
+  peptide-bond geometry regardless of real spatial proximity, so without this
+  exclusion P1 and P1′ — always exactly one position apart — would always
+  trivially "match" each other whenever oppositely charged, independent of
+  any genuine 3D structure;
+- `proline_in_window` / `p1prime_is_proline`: sequence-only checks (no
+  AlphaFold data needed, always available), whether the 8-mer contains a
+  Proline anywhere / specifically at P1′;
+- `p1_is_basic` / `p1_is_coil_favoring`: sequence-only, two deliberately
+  independent columns rather than one merged boolean — whether P1 is basic
+  (Arg/Lys, matching PRSS55's trypsin-like S1 specificity) and whether P1 is
+  a Chou-Fasman coil/turn-former (Gly/Ser/Asn/Asp, empirically low helix and
+  low sheet propensity) as a fallback that at least won't lock the local
+  backbone into rigid secondary structure. Nothing upstream verifies the
+  dataset's central-residue convention holds per row.
 
 `scripts/triage_prss55_sites.py` is a deterministic rule-based analysis step.
 
@@ -70,14 +91,28 @@ design doc's ranking rules (§6): a predicted helix/strand at P1 or P1′
 (`ss_p1`/`ss_p1prime`), elevated local contact density (`contact_density_8a >=
 20` — a provisional heuristic, not experimentally calibrated), a possible
 intramolecular salt bridge at P1/P1′ (`p1_salt_bridge_partner` /
-`p1prime_salt_bridge_partner` — likewise provisional), `Low` exposure
-robustness, multiple annotated protein isoforms (`has_multiple_isoforms`), and
+`p1prime_salt_bridge_partner` — likewise provisional), `Low` pLDDT
+confidence, multiple annotated protein isoforms (`has_multiple_isoforms`), and
 overlap with an annotated domain/motif/region (`domain_annotations`) all land
 as review flags, alongside the existing glycosylation/PTM/disulfide/topology
 flags. `family_annotations` (Pfam/InterPro family membership) is deliberately
-not used for triage — it is protein-level, not site-level, evidence. It sorts
-eligible candidates by the supplied `prob_cleavage`. It does not fit, retrain,
-calibrate, or create an additional ML model.
+not used for triage — it is protein-level, not site-level, evidence.
+
+Two review conditions are kept in their own dedicated output columns instead
+of only being folded into the shared `review_reason` text, so they can be
+filtered independently in a spreadsheet:
+
+- `review-pro`: Proline at P1′ (a distinct mechanistic concern — no backbone
+  N-H for the oxyanion hole, an elevated cis-peptide-bond population, steric
+  bulk in the S1′ subsite) and/or Proline anywhere else in the window
+  (context-dependent, informational — it can promote local disorder, which
+  this pipeline otherwise favors, so it isn't itself treated as unfavorable).
+- `review-p1`: fires only when a site fails **both** `p1_is_basic` and
+  `p1_is_coil_favoring` — i.e. P1 is neither basic nor a coil-favoring small
+  residue, contradicting the dataset's central-residue convention.
+
+It sorts eligible candidates by the supplied `prob_cleavage`. It does not fit,
+retrain, calibrate, or create an additional ML model.
 
 ## Input schema
 

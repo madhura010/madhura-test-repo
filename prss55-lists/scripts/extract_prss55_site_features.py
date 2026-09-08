@@ -24,8 +24,8 @@ OUTPUT_COLUMNS = (
     "p1_position p1prime_position model_score sequence_verified protein_name gene_name has_multiple_isoforms "
     "processing_overlap mature_peptide_overlap chain_annotations transmembrane_overlap topology_annotations subcellular_location domain_annotations family_annotations "
     "glycosylation_count_near_site modified_residue_count_near_site disulfide_overlap rsa_p1 rsa_p1prime rsa_window_mean "
-    "rsa_window_min plddt_window_mean contact_density_8a exposure_robustness ss_p1 ss_p1prime ss_window_pattern ss_helix_fraction ss_strand_fraction ss_loop_fraction "
-    "p1_salt_bridge_partner p1prime_salt_bridge_partner "
+    "rsa_window_min plddt_window_mean contact_density_8a plddt_confidence ss_p1 ss_p1prime ss_window_pattern ss_helix_fraction ss_strand_fraction ss_loop_fraction "
+    "p1_salt_bridge_partner p1prime_salt_bridge_partner proline_in_window p1prime_is_proline p1_is_basic p1_is_coil_favoring "
     "structure_source evidence_gaps warnings retrieved_at"
 ).split()
 
@@ -35,6 +35,16 @@ OUTPUT_COLUMNS = (
 # reliable positive charge.
 POSITIVE_RESIDUES = {"ARG", "LYS"}
 NEGATIVE_RESIDUES = {"ASP", "GLU"}
+# Chou-Fasman-classical coil/turn formers: empirically low helix AND low
+# sheet propensity (high turn/coil propensity), not just small side-chain
+# size. Proline is excluded -- it gets its own dedicated flag/column, since
+# its mechanism (no backbone N-H, elevated cis-bond population) is a
+# different, P1'-specific concern, not interchangeable with this P1 check.
+COIL_FAVORING_RESIDUES = {"GLY", "SER", "ASN", "ASP"}
+# eight_mer uses one-letter codes; POSITIVE_RESIDUES/COIL_FAVORING_RESIDUES use
+# three-letter, to match the PDB-derived `residues` dict used elsewhere. Only
+# the residues those two sets actually reference need an entry here.
+ONE_TO_THREE = {"R": "ARG", "K": "LYS", "G": "GLY", "S": "SER", "N": "ASN", "D": "ASP"}
 # CA-CA distance used as a proxy for salt-bridge proximity. A true salt bridge
 # is a side-chain-atom contact (typically < 4 A between the charged groups),
 # but only backbone CA coordinates are available here; a longer CA-CA radius
@@ -42,7 +52,11 @@ NEGATIVE_RESIDUES = {"ASP", "GLU"}
 # reach several A past its own CA) is not missed. This over-calls some
 # non-bridging proximity and under-calls bridges between residues whose side
 # chains point away from each other -- a heuristic, not a validated geometric
-# criterion, same status as contact_density_8a below.
+# criterion, same status as contact_density_8a below. Sequence-adjacent
+# residues (i, i+1) are excluded from the search entirely: their CA-CA
+# distance is fixed at ~3.8 A by peptide-bond geometry regardless of real
+# spatial proximity, so they would always trivially pass this radius check --
+# see salt_bridge_partner().
 SALT_BRIDGE_RADIUS = 8.0
 
 
@@ -157,7 +171,14 @@ def salt_bridge_partner(position, coords, residues):
     x, y, z = coords[position]
     best_partner, best_dist2 = None, SALT_BRIDGE_RADIUS ** 2
     for other, (ox, oy, oz) in coords.items():
-        if other == position or residues.get(other) not in opposite:
+        # Sequence-adjacent residues have a CA-CA distance fixed at ~3.8 A by
+        # peptide-bond geometry, regardless of conformation or real spatial
+        # proximity -- that's always well inside SALT_BRIDGE_RADIUS, so an
+        # immediate neighbor would trivially "pass" this check even with no
+        # genuine side-chain interaction. Only a residue at least two
+        # positions away carries real, conformation-dependent CA-CA distance
+        # information.
+        if abs(other - position) <= 1 or residues.get(other) not in opposite:
             continue
         dist2 = (x - ox) ** 2 + (y - oy) ** 2 + (z - oz) ** 2
         if dist2 <= best_dist2:
@@ -275,6 +296,21 @@ def feature_row(row, parser, cache_dir, structural_cache_dir, with_rsa):
     offset = row["p1_offset"]
     p1 = start + offset - 1 if offset is not None else None
     p1prime = start + offset if offset is not None else None
+    # Sequence-only checks -- no structural data needed, always available.
+    proline_in_window = "true" if "P" in row["eight_mer"] else "false"
+    p1prime_is_proline = "true" if offset is not None and row["eight_mer"][offset] == "P" else ("false" if offset is not None else "")
+    # Sanity check on the P1-offset convention itself: this dataset assumes
+    # every site's P1 is compatible with PRSS55's trypsin-like S1 pocket
+    # (basic: Arg/Lys) or, short of that, at least a residue that won't
+    # itself lock the local backbone into rigid helix/strand geometry
+    # (Chou-Fasman coil/turn formers: Gly/Ser/Asn/Asp). Nothing upstream
+    # verifies this per row. Kept as two separate columns, not one merged
+    # boolean, so each criterion can be inspected/filtered independently.
+    p1_is_basic, p1_is_coil_favoring = "", ""
+    if offset is not None:
+        p1_three = ONE_TO_THREE.get(row["eight_mer"][offset - 1])
+        p1_is_basic = "true" if p1_three in POSITIVE_RESIDUES else "false"
+        p1_is_coil_favoring = "true" if p1_three in COIL_FAVORING_RESIDUES else "false"
     warnings, gaps = [], []
     observed = sequence[start - 1:end] if end <= len(sequence) else ""
     verified = observed == row["eight_mer"]
@@ -345,9 +381,9 @@ def feature_row(row, parser, cache_dir, structural_cache_dir, with_rsa):
     p1prime_salt_bridge_partner = salt_bridge_partner(p1prime, coords, residues) if p1prime else None
 
     plddt_mean_val = mean(window_plddt) if window_plddt else None
-    robustness = "Unknown"
+    plddt_confidence = "Unknown"
     if plddt_mean_val is not None:
-        robustness = "Medium (confident AlphaFold region)" if plddt_mean_val >= 70 else "Low (pLDDT < 70)"
+        plddt_confidence = "Medium (confident AlphaFold region)" if plddt_mean_val >= 70 else "Low (pLDDT < 70)"
 
     isoform_comments = [c for c in entry.get("comments", []) if c.get("commentType") == "ALTERNATIVE PRODUCTS"]
     has_multiple_isoforms = "true" if any(len(c.get("isoforms", [])) > 1 for c in isoform_comments) else "false"
@@ -372,7 +408,7 @@ def feature_row(row, parser, cache_dir, structural_cache_dir, with_rsa):
         "rsa_window_mean": f"{mean(window_rsa):.3f}" if window_rsa else "",
         "rsa_window_min": f"{min(window_rsa):.3f}" if window_rsa else "",
         "plddt_window_mean": f"{mean(window_plddt):.3f}" if window_plddt else "",
-        "contact_density_8a": contact_density_8a, "exposure_robustness": robustness,
+        "contact_density_8a": contact_density_8a, "plddt_confidence": plddt_confidence,
         "ss_p1": secondary.get(p1, "") if p1 else "", "ss_p1prime": secondary.get(p1prime, "") if p1prime else "",
         "ss_window_pattern": "".join(window_ss) if len(window_ss) == 8 else "",
         "ss_helix_fraction": f"{window_ss.count('H') / len(window_ss):.3f}" if window_ss else "",
@@ -380,6 +416,8 @@ def feature_row(row, parser, cache_dir, structural_cache_dir, with_rsa):
         "ss_loop_fraction": f"{window_ss.count('C') / len(window_ss):.3f}" if window_ss else "",
         "p1_salt_bridge_partner": p1_salt_bridge_partner or "",
         "p1prime_salt_bridge_partner": p1prime_salt_bridge_partner or "",
+        "proline_in_window": proline_in_window, "p1prime_is_proline": p1prime_is_proline,
+        "p1_is_basic": p1_is_basic, "p1_is_coil_favoring": p1_is_coil_favoring,
         "structure_source": structure_source, "evidence_gaps": " | ".join(gaps) or "-",
         "warnings": " | ".join(warnings) or "-", "retrieved_at": dt.date.today().isoformat(),
     }

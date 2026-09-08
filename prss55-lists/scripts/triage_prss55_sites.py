@@ -113,6 +113,35 @@ def main():
         if ss_p1 in ("H", "E") or ss_p1prime in ("H", "E"):
             review.append("P1/P1' bond falls within a predicted helix/strand rather than coil/loop")
 
+        # Proline at P1' is a distinct, localized mechanistic concern -- no
+        # backbone N-H for the oxyanion hole, an elevated cis-bond population,
+        # and steric bulk in the enzyme's S1' subsite -- independent of
+        # whether the surrounding window is otherwise disordered (a Pro
+        # elsewhere in the window can even favor coil/loop character, which
+        # is why window-level proline is reported separately and not treated
+        # as unfavorable on its own). Kept in its own review-pro column, not
+        # just folded into review_reason, so it can be filtered on its own.
+        pro_flags = []
+        if row.get("p1prime_is_proline") == "true":
+            pro_flags.append("Proline at P1' -- mechanistically disfavored for serine-protease catalysis (no backbone N-H, elevated cis-bond population); general serine-protease-family observation, not confirmed for PRSS55")
+        if row.get("proline_in_window") == "true":
+            pro_flags.append("proline present in the 8-mer window -- context-dependent (may promote local disorder); confirm manually")
+        review.extend(pro_flags)
+
+        # Sanity check on the P1-offset convention: nothing upstream verifies
+        # that P1 is actually compatible with PRSS55's trypsin-like S1 pocket
+        # (basic: Arg/Lys) or at least a residue that won't itself lock the
+        # local backbone into rigid helix/strand geometry (Chou-Fasman
+        # coil/turn formers: Gly/Ser/Asn/Asp). Kept as two independent
+        # criteria -- p1_is_basic and p1_is_coil_favoring -- rather than one
+        # merged column, so each can be inspected/filtered on its own; the
+        # review-p1 flag only fires when a row fails both.
+        p1_flags = []
+        p1_basic, p1_coil_favoring = row.get("p1_is_basic", ""), row.get("p1_is_coil_favoring", "")
+        if p1_basic == "false" and p1_coil_favoring == "false":
+            p1_flags.append("P1 residue is neither basic (Arg/Lys) nor a coil-favoring small residue (Gly/Ser/Asn/Asp) -- contradicts the dataset's central-residue convention; verify the offset/site mapping for this row")
+        review.extend(p1_flags)
+
         # CA-CA proxy for an intramolecular salt bridge (see SALT_BRIDGE_RADIUS
         # in extract_prss55_site_features.py) -- a charged P1/P1' side chain
         # already paired with an opposite charge in the folded substrate is
@@ -132,8 +161,8 @@ def main():
         if contact_density.isdigit() and int(contact_density) >= 20:
             review.append(f"elevated local contact density ({contact_density} CA atoms within 8 Å; possible steric burial)")
 
-        if row.get("exposure_robustness", "").startswith("Low"):
-            review.append("exposure robustness is Low (low-confidence AlphaFold region or possible interface)")
+        if row.get("plddt_confidence", "").startswith("Low"):
+            review.append("pLDDT confidence is Low (low-confidence AlphaFold region); does not by itself mean buried -- check rsa_window_mean/rsa_window_min")
 
         if row.get("has_multiple_isoforms") == "true":
             review.append("protein has multiple annotated isoforms; confirm the site is present in the isoform used for testing")
@@ -151,10 +180,10 @@ def main():
             status = "REVIEW"
         else:
             status = "ELIGIBLE"
-        out.append(row | {"analysis_status": status, "exclusion_reason": " | ".join(exclusions) or "-", "review_reason": " | ".join(review) or "-"})
+        out.append(row | {"analysis_status": status, "exclusion_reason": " | ".join(exclusions) or "-", "review_reason": " | ".join(review) or "-", "review-pro": " | ".join(pro_flags) or "-", "review-p1": " | ".join(p1_flags) or "-"})
     order = {"ELIGIBLE": 0, "REVIEW": 1, "EXCLUDE": 2}
     out.sort(key=lambda row: (order[row["analysis_status"]], -probability(row), row.get("source_id", "")))
-    fields = list(rows[0].keys()) + ["analysis_status", "exclusion_reason", "review_reason"] if rows else []
+    fields = list(rows[0].keys()) + ["analysis_status", "exclusion_reason", "review_reason", "review-pro", "review-p1"] if rows else []
     args.output.parent.mkdir(parents=True, exist_ok=True)
     with args.output.open("w", newline="", encoding="utf-8") as handle:
         writer = csv.DictWriter(handle, fieldnames=fields, delimiter="\t")

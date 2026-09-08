@@ -11,7 +11,15 @@ neo-terminus or an exact cleavage event.
 
 - An upstream prediction tool supplies predicted 8-mers, their protein
   coordinates, and a `prob_cleavage` score. For the present PRSS55 dataset, the
-  central arginine (position 4) is P1 and the proposed bond is Arg↓P1′.
+  central arginine (position 4) is P1 and the proposed bond is Arg↓P1′. Nothing
+  upstream verifies this holds per row, so the pipeline checks it: P1 should be
+  basic (Arg/Lys, matching PRSS55's trypsin-like S1 pocket) or, short of that,
+  a Chou-Fasman coil/turn-former (Gly/Ser/Asn/Asp) that at least won't itself
+  lock the local backbone into rigid helix/strand geometry. These are recorded
+  as two independent facts, not one merged pass/fail — a site can be basic
+  without being coil-favoring and vice versa, and collapsing them loses that
+  distinction. Neither holding flags the row for review (data error, or a site
+  the central-residue convention doesn't fit), never a hard exclusion.
 - The objective is cleavage of intact proteins, not merely hydrolysis of short
   peptides.
 - Co-expression in the relevant reproductive setting has already been applied
@@ -91,9 +99,10 @@ P1–P1′ bond (Arg position 4 followed by position 5).
 | --- | --- | --- |
 | Window accessibility | Mean and minimum SASA/RSA across the 8-mer | Site-level evidence of exposure; do not use protein-wide or domain-average SASA alone. |
 | Bond-specific accessibility | Per-residue SASA/RSA at P1 and P1′, once the bond is defined | Do not compute or infer this from the centre of the 8-mer. |
-| Electrostatic complementarity | Intramolecular salt-bridge check: is the charged P1/P1′ side chain within a proxy radius of an oppositely-charged residue in the folded substrate | Penalize a charged P1/P1′ residue that may already be ion-paired within the fold rather than free to engage the protease. Substrate-side only — does not model PRSS55's own active site, which has no solved structure. |
+| Electrostatic complementarity | Intramolecular salt-bridge check: is the charged P1/P1′ side chain within a proxy radius of an oppositely-charged residue in the folded substrate, excluding the residue's own sequence neighbors | Penalize a charged P1/P1′ residue that may already be ion-paired within the fold rather than free to engage the protease. Substrate-side only — does not model PRSS55's own active site, which has no solved structure. Sequence-adjacent residues must be excluded from the search: their backbone distance is fixed by peptide-bond geometry regardless of real spatial proximity, so P1 and P1′ (always one position apart) would otherwise always trivially "pass" against each other with no genuine signal. |
 | Structural depth/contact density | Local atom/residue contacts or depth below protein surface | Penalize grooves and cores that are nominally solvent exposed but sterically constrained. |
 | Secondary structure | Secondary structure at least across P2–P2′ | Favor coil, turn, or accessible loop; penalize stable alpha-helix and beta-strand. |
+| Proline near the bond | Presence of Proline anywhere in the 8-mer window, and specifically at P1′ | Proline at P1′ is a distinct, localized concern independent of window-level flexibility: no backbone N-H for the oxyanion hole, an elevated cis-peptide-bond population, and steric bulk in the S1′ subsite — a general serine-protease-family observation, not confirmed for PRSS55. Proline elsewhere in the window is reported separately and not treated as unfavorable on its own — it can promote local disorder, which this pipeline otherwise favors. |
 | Flexibility | Disorder prediction plus AlphaFold pLDDT where applicable | Supports, but does not prove, transient access. Low pLDDT is not direct evidence of cleavage. |
 | Domain context | Domain/core, disulfide-rich region, catalytic site, or binding region | Penalize sites where cleavage is structurally implausible or disruptive without evidence. |
 | Interface occlusion | Experimental complex structures or credible complex/interface annotations | Penalize monomer-exposed sites that may be buried in the native assembly. |
@@ -111,6 +120,17 @@ robustness label for each site:
 - **Low:** model is low confidence, site may be an interface, or accessibility
   differs across plausible structures.
 
+The current implementation only delivers the model-confidence half of this —
+it reports `plddt_confidence` (Medium/Low/Unknown), computed purely from mean
+window pLDDT, with no `High` tier since only one AlphaFold model is used and
+there is no experimental structure to cross-check against. It does not itself
+read the RSA columns, so it does not actually assess *exposure* robustness in
+the sense defined above — a site can be confidently buried just as easily as
+confidently exposed. The column was named `exposure_robustness` originally,
+which overclaimed what it measures; it is now named `plddt_confidence` to
+match. Combining it with `rsa_window_mean`/`rsa_window_min` into a label that
+matches this section's actual definition remains a gap, not yet implemented.
+
 Whole-protein PRSS55–substrate docking is not a primary filter: unconstrained
 docking across many targets tends to create precise-looking but unvalidated
 poses. It may be used only for qualitative inspection of the final few sites.
@@ -127,7 +147,8 @@ priority =
   → manual-review flags (topology, glycan/PTM, disulfide, isoform ambiguity,
                           domain overlap, secretory-pathway residency,
                           secondary structure, contact density,
-                          electrostatic/salt-bridge, missing structure)
+                          electrostatic/salt-bridge, proline at P1'/in window,
+                          P1 residue class, missing structure)
   → sort remaining sites by supplied prob_cleavage
 ```
 
@@ -151,7 +172,8 @@ accession | isoform | protein name | 8-mer | P1-P1′ coordinate |
 prob_cleavage | P1/P1′ SASA | min/mean window SASA |
 secondary structure | disorder/pLDDT | topology status |
 PTM/interface flags | electrostatic/salt-bridge flag |
-structure source/confidence | exposure robustness |
+proline flag (P1'/window) | P1 residue class (basic/coil-favoring) |
+structure source/confidence | pLDDT confidence |
 composite score | tier | rationale
 ```
 

@@ -94,14 +94,29 @@ python3 scripts/triage_prss55_sites.py \
 - P1/P1′ and window RSA, plus mean pLDDT;
 - `contact_density_8a`: count of CA atoms within 8 Å of the 8-mer window,
   penalizing sites that are nominally solvent-exposed but sterically buried;
-- `exposure_robustness`: confidence label (`Low`, `Medium`, or `Unknown`) for
-  the structural-exposure evidence, based on AlphaFold pLDDT;
+- `plddt_confidence`: confidence label (`Low`, `Medium`, or `Unknown`) for
+  the window's mean AlphaFold pLDDT. This is model confidence, not exposure —
+  it says nothing about whether the site is solvent-accessible; that's
+  `rsa_window_mean`/`rsa_window_min` (renamed from `exposure_robustness`,
+  which implied it measured exposure when it never read the RSA columns at all);
 - PyDSSP three-state annotation: `H` alpha helix, `E` beta strand, `C` loop or
   other; and fractions of each state over the window;
 - `p1_salt_bridge_partner` / `p1prime_salt_bridge_partner`: residue number of
   the nearest oppositely-charged residue within 8 Å (CA–CA) of P1/P1′, if any —
   a substrate-side electrostatic proxy for whether the charged P1 residue is
-  already intramolecularly ion-paired rather than free to engage the protease;
+  already intramolecularly ion-paired rather than free to engage the protease.
+  Sequence-adjacent residues are excluded from the search: their CA–CA distance
+  is fixed by peptide-bond geometry regardless of real proximity, so P1/P1′
+  (always one position apart) could never be meaningfully evaluated against
+  each other without this exclusion;
+- `proline_in_window` / `p1prime_is_proline`: sequence-only (no structural
+  data needed), whether the 8-mer contains a Proline anywhere / specifically
+  at P1′;
+- `p1_is_basic` / `p1_is_coil_favoring`: sequence-only, two independent
+  columns — whether P1 is basic (Arg/Lys, matching PRSS55's trypsin-like S1
+  specificity) and whether P1 is a Chou-Fasman coil/turn-former
+  (Gly/Ser/Asn/Asp), kept separate rather than merged so each can be
+  inspected on its own;
 - PTM/glycosylation, disulfide, topology, and evidence-gap flags;
 - exact AlphaFold model URL used for the calculation.
 
@@ -116,13 +131,17 @@ python3 scripts/triage_prss55_sites.py \
   place), nearby glycosylation or modified residue, disulfide overlap, an
   unresolved P1/P1′ bond, a predicted helix/strand at P1 or P1′
   (`ss_p1`/`ss_p1prime`), elevated local contact density
-  (`contact_density_8a >= 20`, a provisional heuristic), `Low` exposure
-  robustness, multiple annotated protein isoforms (`has_multiple_isoforms`),
+  (`contact_density_8a >= 20`, a provisional heuristic), `Low` pLDDT
+  confidence, multiple annotated protein isoforms (`has_multiple_isoforms`),
   overlap with an annotated domain/motif/region (`domain_annotations`), a
   possible intramolecular salt bridge at P1/P1′ (`p1_salt_bridge_partner` /
-  `p1prime_salt_bridge_partner`, another provisional heuristic), or a
+  `p1prime_salt_bridge_partner`, another provisional heuristic), a
   secretory-pathway-only subcellular location (Golgi/ER/lysosome) with no
-  accompanying Secreted/surface annotation;
+  accompanying Secreted/surface annotation, Proline at P1′ or in the window
+  (recorded in its own `review-pro` column, not just folded into
+  `review_reason`, so it's independently filterable), or a P1 residue that is
+  neither basic nor coil-favoring (its own `review-p1` column, firing only
+  when both `p1_is_basic` and `p1_is_coil_favoring` are false);
 - `EXCLUDE`: sequence mismatch, signal/propeptide overlap, membrane overlap,
   cytoplasmic topology annotation, or a subcellular location that is an
   unambiguous intracellular compartment (cytoplasm, nucleus, chromosome,
