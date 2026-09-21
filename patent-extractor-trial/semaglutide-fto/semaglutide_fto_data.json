@@ -1,0 +1,626 @@
+{
+  "meta": {
+    "subject": "Semaglutide (GLP-1 receptor agonist peptide analog) - FTO/exclusivity pipeline worked example",
+    "as_of_date": "2026-09-19",
+    "note": "Patent numbers and expiry dates below were pulled directly from the FDA Orange Book patent_info pages for each NDA and cross-checked against Google Patents (mirrors USPTO grant data). EPO/litigation entries are as reported by the secondary sources cited - re-verify against the EPO Register and PACER/USPTO PTAB records before relying on them for a real decision. This file is illustrative, not a legal FTO opinion.",
+    "primary_sources_used": [
+      {
+        "name": "FDA Orange Book - NDA 209637 (Ozempic) patent info",
+        "url": "https://www.accessdata.fda.gov/scripts/cder/ob/patent_info.cfm?Product_No=001&Appl_No=209637&Appl_type=N"
+      },
+      {
+        "name": "FDA Orange Book - NDA 215256 (Wegovy) patent info",
+        "url": "https://www.accessdata.fda.gov/scripts/cder/ob/patent_info.cfm?Product_No=001&Appl_No=215256&Appl_type=N"
+      },
+      {
+        "name": "FDA Orange Book - NDA 213051 (Rybelsus) patent info",
+        "url": "https://www.accessdata.fda.gov/scripts/cder/ob/patent_info.cfm?Product_No=001&Appl_No=213051&Appl_type=N"
+      },
+      {
+        "name": "Google Patents - US8129343B2",
+        "url": "https://patents.google.com/patent/US8129343"
+      },
+      {
+        "name": "Google Patents - US10335462",
+        "url": "https://patents.google.com/patent/US10335462"
+      },
+      {
+        "name": "JUVE Patent - EPO upholds Novo Nordisk semaglutide tablet patent EP3746111",
+        "url": "https://www.juve-patent.com/cases/epo-upholds-novo-nordisk-semaglutide-patent-ozempic-wegovy/"
+      },
+      {
+        "name": "FiercePharma - Viatris IPR petition on US10,335,462",
+        "url": "https://www.fiercepharma.com/pharma/novo-nordisk-patent-semaglutide-invalid-viatris-request-uspto-will-review"
+      },
+      {
+        "name": "Lexology - Novo Nordisk settlements (Ozempic)",
+        "url": "https://www.lexology.com/library/detail.aspx?g=519bd58a-1a86-48f5-83da-150b5d9367fe"
+      },
+      {
+        "name": "FormBlends - FDA drug vs biologic definition for peptides",
+        "url": "https://formblends.com/articles/peptide-hub/compare-fda-drug-vs-biologic-definition-peptide"
+      }
+    ]
+  },
+  "molecule": {
+    "inn": "semaglutide",
+    "class": "Acylated GLP-1 receptor agonist peptide analog",
+    "parent_peptide": "Human GLP-1(7-37)",
+    "parent_sequence": "HAEGTFTSDVSSYLEGQAAKEFIAWLVKGRG",
+    "length_residues": 31,
+    "regulatory_classification": {
+      "pathway": "small-molecule NDA, 505(b)(1)",
+      "reason": "31 residues, below the FDA's 40-amino-acid drug/biologic dividing line (Section 505 FDCA vs Section 351 PHS Act)",
+      "listing": "FDA Orange Book (not Purple Book)",
+      "nce_exclusivity_status": "5-year NCE exclusivity from first approval (Ozempic, Dec 2017) already expired; patents, not regulatory exclusivity, are the current binding constraint on generic entry",
+      "products": [
+        {
+          "brand": "Ozempic",
+          "nda": "209637",
+          "indication": "type 2 diabetes",
+          "dosage_form": "injection",
+          "first_approval": "2017-12-05"
+        },
+        {
+          "brand": "Rybelsus",
+          "nda": "213051",
+          "indication": "type 2 diabetes",
+          "dosage_form": "oral tablet (SNAC absorption enhancer)",
+          "first_approval": "2019-09-20"
+        },
+        {
+          "brand": "Wegovy",
+          "nda": "215256",
+          "indication": "chronic weight management / obesity, cardiovascular risk reduction, MASH",
+          "dosage_form": "injection",
+          "first_approval": "2021-06-04"
+        }
+      ]
+    },
+    "structural_modifications_vs_native_glp1": [
+      {
+        "position": 8,
+        "native_residue": "Ala",
+        "semaglutide_residue": "Aib (2-aminoisobutyric acid)",
+        "rationale": "Steric block at the DPP-4 cleavage site; confers resistance to dipeptidyl peptidase-4 mediated inactivation.",
+        "conserved_in_claims": "Composition-of-matter claims typically recite position 7/8 substitution with a non-proteogenic amino acid as a genus, not just Aib specifically - check the exact Markush variable before assuming Aib is the only substituent claimed."
+      },
+      {
+        "position": 26,
+        "native_residue": "Lys",
+        "semaglutide_residue": "Lys (retained; side-chain epsilon-amine carries the lipidation conjugate)",
+        "rationale": "Sole attachment point for the AEEA-AEEA-gammaGlu-C18-diacid albumin-binding tail once position 34's lysine is removed.",
+        "conserved_in_claims": "The conjugate's chain length, linker chemistry and attachment chemistry are claimed as a genus (variable acyl chain length/linker) in the compound patents - this is the single highest-value claim element to map precisely against any design-around."
+      },
+      {
+        "position": 34,
+        "native_residue": "Lys",
+        "semaglutide_residue": "Arg",
+        "rationale": "Removes the second acylation-competent lysine so that conjugation occurs exclusively at position 26, giving a single, defined conjugation product instead of a mixture.",
+        "conserved_in_claims": "Often claimed together with the position-26 conjugation as part of the same genus."
+      }
+    ]
+  },
+  "conserved_structural_motifs": [
+    {
+      "id": "aib8_dpp4_block",
+      "name": "Position-8 Aib substitution (DPP-4 resistance)",
+      "type": "non-proteogenic amino acid substitution",
+      "smiles": "CC(C)(N)C(=O)O",
+      "native_comparator_smiles": "CC(N)C(=O)O",
+      "figure_color": "used in the residue-swap panel (red highlight)",
+      "why_conserved": "This is close to a structural necessity for oral/systemic peptide stability against DPP-4; almost every long-acting GLP-1 analog in this class (liraglutide, semaglutide, and most follow-ons) makes some change at this position.",
+      "claim_relevance": "Look for Markush language covering 'a non-natural amino acid at position 8' rather than 'Aib' specifically - the genus is usually broader than the one exemplified residue."
+    },
+    {
+      "id": "lys34arg_redirect",
+      "name": "Position-34 Lys-to-Arg substitution",
+      "type": "amino acid substitution",
+      "smiles": "NC(=N)NCCCC(N)C(=O)O",
+      "native_comparator_smiles": "NCCCCC(N)C(=O)O",
+      "figure_color": "used in the residue-swap panel (red highlight)",
+      "why_conserved": "Needed whenever the design conjugates only at Lys26 and wants to avoid a mixture of mono- and di-acylated product.",
+      "claim_relevance": "Frequently claimed jointly with the Lys26 conjugation limitation rather than as its own independent claim."
+    },
+    {
+      "id": "lys26_lipidation_conjugate",
+      "name": "Lys26 side-chain conjugate: AEEA-AEEA-gammaGlu-C18 diacid",
+      "type": "acylated albumin-binding side chain (the actual Markush genus in the compound patents)",
+      "smiles": "CC(=O)NC(CCCCNC(=O)COCCOCCNC(=O)COCCOCCNC(=O)CCC(C(=O)O)NC(=O)CCCCCCCCCCCCCCCCC(=O)O)C(=O)NC",
+      "molecular_formula": "C44H80N6O14",
+      "molecular_weight": 917.15,
+      "note_on_smiles": "The peptide backbone is modeled as an N-acetyl/N-methylamide-capped lysine for clarity (a standalone, drawable fragment) rather than the full 31-residue peptide; stereochemistry at the Lys and Glu alpha-carbons is omitted from the SMILES for legibility (both are L-configured in the native molecule).",
+      "fragment_atom_groups": {
+        "lys_backbone_stand_in": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          11,
+          18,
+          19,
+          21,
+          28,
+          29,
+          40,
+          56,
+          57,
+          58,
+          59,
+          60,
+          61,
+          62,
+          63
+        ],
+        "aeea_linker_x2": [
+          10,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          20,
+          22,
+          23,
+          24,
+          25,
+          26,
+          27
+        ],
+        "gamma_glu_spacer": [
+          30,
+          31,
+          32,
+          33,
+          34,
+          35,
+          36,
+          37,
+          38
+        ],
+        "c18_fatty_diacid": [
+          39,
+          41,
+          42,
+          43,
+          44,
+          45,
+          46,
+          47,
+          48,
+          49,
+          50,
+          51,
+          52,
+          53,
+          54,
+          55
+        ]
+      },
+      "why_conserved": "This is the actual pharmacophore for half-life extension - it is what US8129343's claim 1 genus covers ('acylated at Lys26 with a moiety containing at least two acidic groups, one terminal, attached via a hydrophilic linker'). Every once-weekly GLP-1 in this structural class carries some version of it.",
+      "claim_relevance": "Highest-priority element for a chemist's design-around review: check the claimed range on (a) acyl/diacid chain length (patent text cites 4-40 carbons), (b) linker composition (hydrophilic spacer, not necessarily AEEA specifically), and (c) number of acidic groups on the distal end, before assuming a modified chain length or linker falls outside the genus.",
+      "figure_file": "semaglutide_conserved_motifs.png (panel 2)"
+    }
+  ],
+  "patents": {
+    "ozempic_nda_209637": {
+      "brand": "Ozempic",
+      "application_type": "NDA",
+      "application_no": "209637",
+      "orange_book_patents": [
+        {
+          "patent_no": "8129343",
+          "expiry": "2031-12-05",
+          "codes": [
+            "DS",
+            "DP"
+          ],
+          "use_code": "U-2202",
+          "claim_type": "composition of matter",
+          "title": "Acylated GLP-1 compounds",
+          "assignee": "Novo Nordisk A/S"
+        },
+        {
+          "patent_no": "8536122",
+          "expiry": "2026-03-20",
+          "codes": [
+            "DS",
+            "DP"
+          ],
+          "use_code": "U-2202",
+          "claim_type": "composition of matter"
+        },
+        {
+          "patent_no": "8920383",
+          "expiry": "2026-07-17",
+          "codes": [
+            "DP"
+          ],
+          "claim_type": "drug product"
+        },
+        {
+          "patent_no": "9108002",
+          "expiry": "2026-01-20",
+          "codes": [
+            "DP"
+          ],
+          "claim_type": "drug product"
+        },
+        {
+          "patent_no": "9132239",
+          "expiry": "2032-02-01",
+          "codes": [
+            "DP"
+          ],
+          "claim_type": "drug product"
+        },
+        {
+          "patent_no": "9457154",
+          "expiry": "2027-09-29",
+          "codes": [
+            "DP"
+          ],
+          "claim_type": "drug product"
+        },
+        {
+          "patent_no": "9616180",
+          "expiry": "2026-01-20",
+          "codes": [
+            "DP"
+          ],
+          "claim_type": "drug product"
+        },
+        {
+          "patent_no": "9687611",
+          "expiry": "2027-02-27",
+          "codes": [
+            "DP"
+          ],
+          "claim_type": "drug product"
+        },
+        {
+          "patent_no": "9775953",
+          "expiry": "2026-07-17",
+          "codes": [
+            "DP"
+          ],
+          "claim_type": "drug product"
+        },
+        {
+          "patent_no": "9861757",
+          "expiry": "2026-01-20",
+          "codes": [
+            "DP"
+          ],
+          "claim_type": "drug product"
+        },
+        {
+          "patent_no": "10220155",
+          "expiry": "2026-07-17",
+          "codes": [
+            "DP"
+          ],
+          "claim_type": "drug product"
+        },
+        {
+          "patent_no": "10335462",
+          "expiry": "2033-06-21",
+          "use_code": "U-2580",
+          "claim_type": "method of use (dosing regimen)",
+          "title": "Use of long-acting GLP-1 peptides",
+          "assignee": "Novo Nordisk A/S",
+          "litigation": "Challenged by Viatris via IPR (petition granted 2023; oral argument July 2024; PTAB decision expected Oct 2024 - outcome must be re-verified)"
+        },
+        {
+          "patent_no": "10357616",
+          "expiry": "2026-01-20",
+          "codes": [
+            "DP"
+          ],
+          "claim_type": "drug product"
+        },
+        {
+          "patent_no": "10376652",
+          "expiry": "2026-01-20",
+          "codes": [
+            "DP"
+          ],
+          "claim_type": "drug product"
+        },
+        {
+          "patent_no": "11097063",
+          "expiry": "2026-07-17",
+          "codes": [
+            "DP"
+          ],
+          "claim_type": "drug product"
+        },
+        {
+          "patent_no": "RE46363",
+          "expiry": "2026-08-03",
+          "codes": [
+            "DP"
+          ],
+          "claim_type": "drug product (reissue)"
+        }
+      ],
+      "regulatory_exclusivity": [
+        {
+          "code": "I-961",
+          "description": "Competitive Generic Therapy",
+          "expiry": "2028-01-28"
+        }
+      ],
+      "litigation_status": "Settled with Mylan/Natco, Dr. Reddy's, Apotex and Sun Pharma in fall 2024; generic entry reported around 2032."
+    },
+    "wegovy_nda_215256": {
+      "brand": "Wegovy",
+      "application_type": "NDA",
+      "application_no": "215256",
+      "orange_book_patents": [
+        {
+          "patent_no": "8129343",
+          "expiry": "2031-12-05",
+          "codes": [
+            "DS",
+            "DP"
+          ],
+          "claim_type": "composition of matter"
+        },
+        {
+          "patent_no": "8536122",
+          "expiry": "2026-03-20",
+          "codes": [
+            "DS",
+            "DP"
+          ],
+          "claim_type": "composition of matter"
+        },
+        {
+          "patent_no": "9764003",
+          "expiry": "2033-06-21",
+          "use_code": "U-3161",
+          "claim_type": "method of use (weight-management dose schedule)"
+        },
+        {
+          "patent_no": "10888605",
+          "expiry": "2038-08-24",
+          "codes": [
+            "DP"
+          ],
+          "use_code": "U-3162",
+          "claim_type": "method of use (weight-management)"
+        },
+        {
+          "patent_no": "11318191",
+          "expiry": "2041-02-17",
+          "codes": [
+            "DP"
+          ],
+          "use_code": "U-3162",
+          "claim_type": "method of use (weight-management)"
+        },
+        {
+          "patent_no": "11478533",
+          "expiry": "2040-05-13",
+          "use_code": "U-3861",
+          "claim_type": "method of use (MASH/NASH with liver fibrosis)"
+        },
+        {
+          "patent_no": "11752198",
+          "expiry": "2038-08-24",
+          "codes": [
+            "DP"
+          ],
+          "use_code": "U-3162",
+          "claim_type": "method of use (weight-management)"
+        },
+        {
+          "patent_no": "12214017",
+          "expiry": "2038-08-24",
+          "codes": [
+            "DP"
+          ],
+          "use_code": "U-3162",
+          "claim_type": "method of use (weight-management)"
+        }
+      ],
+      "regulatory_exclusivity": [
+        {
+          "code": "I-935",
+          "description": "cardiovascular risk reduction indication",
+          "expiry": "2027-03-08"
+        },
+        {
+          "code": "I-973",
+          "description": "MASH/NASH indication",
+          "expiry": "2028-08-15"
+        }
+      ],
+      "litigation_status": "Active infringement litigation against Mylan, Sun Pharmaceuticals and Apotex reported as of early 2025 - re-verify current status.",
+      "note": "The Federal Circuit's Teva v. Amneal decision has been cited as calling into question whether device/method patents that do not require semaglutide itself should be Orange-Book-listed at all - a possible delisting risk that would shorten this list."
+    },
+    "rybelsus_nda_213051": {
+      "brand": "Rybelsus",
+      "application_type": "NDA",
+      "application_no": "213051",
+      "orange_book_patents": [
+        {
+          "patent_no": "8129343",
+          "expiry": "2031-12-05",
+          "codes": [
+            "DS",
+            "DP"
+          ],
+          "use_code": "U-2628",
+          "claim_type": "composition of matter"
+        },
+        {
+          "patent_no": "8536122",
+          "expiry": "2026-03-20",
+          "codes": [
+            "DS",
+            "DP"
+          ],
+          "use_code": "U-2628",
+          "claim_type": "composition of matter"
+        },
+        {
+          "patent_no": "9278123",
+          "expiry": "2031-12-16",
+          "codes": [
+            "DP"
+          ],
+          "use_code": "U-2628",
+          "claim_type": "drug product"
+        },
+        {
+          "patent_no": "10086047",
+          "expiry": "2031-12-16",
+          "codes": [
+            "DP"
+          ],
+          "claim_type": "drug product"
+        },
+        {
+          "patent_no": "10278923",
+          "expiry": "2034-05-02",
+          "use_code": "U-2628",
+          "claim_type": "method of use / formulation"
+        },
+        {
+          "patent_no": "10933120",
+          "expiry": "2033-03-15",
+          "codes": [
+            "DP"
+          ],
+          "claim_type": "drug product (formulation)"
+        },
+        {
+          "patent_no": "10960052",
+          "expiry": "2031-12-16",
+          "codes": [
+            "DP"
+          ],
+          "claim_type": "drug product"
+        },
+        {
+          "patent_no": "11033499",
+          "expiry": "2033-06-19",
+          "codes": [
+            "DP"
+          ],
+          "use_code": "U-2628",
+          "claim_type": "drug product / method of use"
+        },
+        {
+          "patent_no": "11382957",
+          "expiry": "2031-12-16",
+          "codes": [
+            "DP"
+          ],
+          "claim_type": "drug product"
+        },
+        {
+          "patent_no": "11759501",
+          "expiry": "2033-03-15",
+          "codes": [
+            "DP"
+          ],
+          "claim_type": "drug product (formulation)"
+        },
+        {
+          "patent_no": "11759502",
+          "expiry": "2033-03-15",
+          "codes": [
+            "DP"
+          ],
+          "claim_type": "drug product (formulation)"
+        },
+        {
+          "patent_no": "11759503",
+          "expiry": "2033-03-15",
+          "codes": [
+            "DP"
+          ],
+          "claim_type": "drug product (formulation)"
+        },
+        {
+          "patent_no": "12239739",
+          "expiry": "2034-05-02",
+          "codes": [
+            "DS",
+            "DP"
+          ],
+          "use_code": "U-2628",
+          "claim_type": "composition/formulation"
+        },
+        {
+          "patent_no": "12514822",
+          "expiry": "2034-05-02",
+          "use_code": "U-2628",
+          "claim_type": "method of use / formulation"
+        },
+        {
+          "patent_no": "12594326",
+          "expiry": "2033-03-15",
+          "codes": [
+            "DP"
+          ],
+          "claim_type": "drug product (formulation)"
+        }
+      ],
+      "regulatory_exclusivity": [
+        {
+          "code": "I-976",
+          "description": "method of treating type 2 diabetes mellitus",
+          "expiry": "2028-10-17"
+        }
+      ],
+      "formulation_note": "SNAC (salcaprozate sodium) absorption enhancer is central to the oral tablet's later-filed formulation patents (2033-2034 expiries) - this cluster, not the compound patent, is now the long pole for Rybelsus generics."
+    },
+    "epo_and_international": [
+      {
+        "patent_no": "EP 3 746 111 B1",
+        "jurisdiction": "EPO",
+        "claim_type": "oral tablet formulation (bioavailability)",
+        "status": "Upheld by EPO Opposition Division against inventive-step challenges (2024-2025); appeal possible.",
+        "note": "Reported alongside multiple OTHER Novo Nordisk semaglutide-related EPO patents that the Boards of Appeal have revoked in the same period - the EU compound/formulation estate is more contested than the US one and needs its own jurisdiction-by-jurisdiction check, not an assumption that US outcomes carry over."
+      }
+    ]
+  },
+  "fto_risk_summary": [
+    {
+      "risk_tier": "low (time-limited)",
+      "item": "Composition-of-matter patents (8129343 / 8536122 family)",
+      "reasoning": "Nearest-term expiries (2026 and 2031); the 2023 Mylan IPR challenge to the extended-term compound patent failed, but the earliest-filed compound patent is already at or near expiry."
+    },
+    {
+      "risk_tier": "high",
+      "item": "Method-of-use / dosing-regimen patents (10335462, 9764003, 10888605, 11318191, 11752198, 12214017, 11478533)",
+      "reasoning": "Latest expiries (2033-2041), squarely the subject of Novo Nordisk v. Mylan claim-scope litigation, and not cleared just because the compound patents expire - a 'skinny label' design-around is a regulatory/legal lever here, not a chemistry one."
+    },
+    {
+      "risk_tier": "high (single point of failure for Rybelsus)",
+      "item": "Oral formulation / SNAC-related patents (9278123 and later Rybelsus-specific filings, 2031-2034)",
+      "reasoning": "Rybelsus is the one format where a single formulation claim cluster can hold off generic entry well past the compound patent's expiry - the absorption-enhancer chemistry needs its own design-around track."
+    },
+    {
+      "risk_tier": "medium, jurisdiction-specific",
+      "item": "EPO oral-formulation and other semaglutide-related EU filings",
+      "reasoning": "Mixed outcomes at the EPO (some upheld, some revoked on appeal) mean the EU picture cannot be assumed to mirror the US Orange Book position."
+    },
+    {
+      "risk_tier": "not currently binding",
+      "item": "Regulatory exclusivity (NCE / competitive generic therapy / indication-specific exclusivities)",
+      "reasoning": "5-year NCE exclusivity already lapsed; remaining exclusivity codes are indication-specific and narrower than the patent estate, so patents - not exclusivity - are the actual gating constraint today."
+    }
+  ]
+}
