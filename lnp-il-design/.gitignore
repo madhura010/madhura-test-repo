@@ -1,0 +1,19 @@
+.venv/
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+__pycache__/
+
+# Skills installed by skills-pack; the lock file records them
+.claude/skills/
+.agents/skills/
+
+# Raw datasets are read-only inputs, cloned or downloaded separately
+data/raw/
+data/curated/
+LNPDB/
+
+# No copyrighted papers or text extracted from them
+*.pdf
+*_paper.txt
