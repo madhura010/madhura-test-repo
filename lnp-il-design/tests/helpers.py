@@ -75,3 +75,43 @@ def write_lnpdb(root: Path, rows: list[dict[str, object]]) -> Path:
     csv_path.parent.mkdir(parents=True, exist_ok=True)
     frame.to_csv(csv_path, index=False)
     return csv_path
+
+
+ATLAS_COLUMNS = [
+    "lnp_id",
+    "ionizable_lipid",
+    "ionizable_lipid_smiles",
+    "helper_lipid",
+    "sterol_lipid",
+    "peg_lipid",
+    "lipid_molar_ratio",
+    "particle_size_nm_std",
+    "pdi_std",
+    "zeta_potential_mv_std",
+    "encapsulation_efficiency_percent_std",
+    "loading_capacity_std",
+    "target_type",
+    "paper_doi",
+    "paper_year",
+    "bioactivity_profile",
+]
+
+
+def write_atlas_csv(path: Path, rows: list[dict[str, str | None]]) -> Path:
+    """Write rows as an Atlas-format CSV in EUC-KR, the encoding the real file uses."""
+    frame = pd.DataFrame(rows).reindex(columns=ATLAS_COLUMNS)
+    frame.to_csv(path, index=False, encoding="euc-kr")
+    return path
+
+
+def atlas_row(row_id: int, smiles: str | None, doi: str = "10.1/x") -> dict[str, str | None]:
+    return {
+        "lnp_id": str(row_id),
+        "ionizable_lipid": f"IL{row_id}",
+        "ionizable_lipid_smiles": smiles,
+        "particle_size_nm_std": "108.0 ± 2.1",
+        "target_type": "mRNA",
+        "paper_doi": doi,
+        "paper_year": "2024",
+        "bioactivity_profile": "gene_expression_result: ~1.0 fold vs control",
+    }

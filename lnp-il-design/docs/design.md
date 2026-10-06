@@ -11,8 +11,8 @@ This proposes the structure of a pipeline that turns public LNP data into a rank
 Five modules, in a line, with the data store beneath them.
 
 - **Ingest** — turns each source dataset into rows in one common table, with provenance and the original label kept.
-  - exposes: add a source; produce the unified table. A merge report comes with the second source.
-  - hands off: to Curate, a table with one row per formulation, plus source, DOI and license columns.
+  - exposes: read each source into a table. A source with labels (LNPDB) goes into the common table that feeds Curate. A source without a usable label (LNP Atlas) gets its own comparison with LNPDB's development rows, with its own report, and does not enter Curate.
+  - hands off: to Curate, a table with one row per formulation, plus source, DOI and license columns; to Design, the Atlas rows (structures and formulation fields, each flagged by whether the IL is in LNPDB's development rows).
 - **Curate** — splits off the sealed holdout first, then standardizes structures and normalizes labels within study and context for each half independently. Deduplication across sources comes with the second source. Development outputs carry no information about sealed studies.
   - exposes: build a dataset version; list studies and their split assignment.
   - hands off: to Model, a versioned dataset with study ID, context, z-score and task flags per row; to Design, the annotated head, linker and tail fragments of the known ILs.
@@ -43,7 +43,7 @@ Losing the split definitions or the cycle records makes earlier results unreprod
 
 **A cycle with a partner.** After gate 1 passes, Design generates candidates from the best-measured ILs. Select ranks 48 of them plus controls and writes the shortlist. The partner synthesizes and screens them and sends back a file of values and plate controls. Select ingests it as a new study and reports predicted-versus-measured rank, hit rate against random library members, and calibration. Model is refit.
 
-**Adding a data source.** A developer writes one adapter that maps the new source's fields to the common table and declares its label type and license. Curate and everything after it are unchanged. The merge report shows the new source's contribution and its duplicates. A model or generator is added the same way: implement the module's contract, register it by name, run the benchmark protocol unchanged.
+**Adding a data source.** A developer adds one reader in Ingest that maps the source's fields to a table, and declares its label type and license. A source with labels maps to the common table and feeds Curate, which is unchanged. A source without a usable label, as LNP Atlas, does not enter Curate: it needs its own comparison with LNPDB's development rows and its own report, which is what the Atlas step added.
 
 ## Decisions
 
@@ -56,7 +56,7 @@ Losing the split definitions or the cycle records makes earlier results unreprod
 ### How sources are combined
 
 - **Options:** pool all labels into one column; one table with source and original label plus a recomputed within-study z-score (proposed); keep sources as separate datasets.
-- **Chose:** one table with both labels and provenance. Sources in scope: LNPDB for labels, and LNP Atlas for structures and physicochemical fields only (its activity values are free text). LANCE/COMET is out of scope (author's decision): its machine-readable data is under a license that excludes commercial use. Pooling raw labels across labs is the error the vision exists to avoid. Separate datasets would lose the extra rows that LANCE and Atlas add.
+- **Chose:** one table with both labels and provenance, for sources that have labels. LNPDB is the only one. LNP Atlas does not enter that table: its activity values are free text, so it is read separately for structures and physicochemical fields and compared with LNPDB's development rows by InChIKey. An Atlas row whose IL is also in a sealed study is dropped, so holdout structures cannot reach the generator through Atlas.
 - **Consequences:** every source needs a normalization rule or is marked rank-only. Sources that cannot be normalized (Atlas reports raw values in mixed forms) contribute metadata and physicochemical fields, not regression labels.
 
 ### Which rows count as labels

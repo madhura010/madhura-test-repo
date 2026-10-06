@@ -9,8 +9,9 @@ Predict mRNA transfection efficiency of LNP formulations from public data only, 
 ## Current state
 
 - **Done and checked:** Ingest and Curate for LNPDB (`lnp-il data curate`), written to the design in [design.md](design.md). Review findings were fixed. Docs are synced to the code.
-- **Not done:** Model, Design (candidate generation) and Select modules; Atlas ingest; preflight; any commit.
-- **Uncommitted:** all of `lnp-il-design/` is untracked in the local clone of `madhura010/madhura-test-repo` (branch `main`). Nothing has been pushed. That repo is public.
+- **Not done:** Model, Design (candidate generation) and Select modules.
+- **Built, uncommitted:** the Atlas step (`lnp-il data atlas`, `core/atlas.py`, `core/structures.py`), with tests, docs and a CHANGELOG entry. Code review and preflight done and their items fixed.
+- **Shipped:** committed to `main` of `madhura010/madhura-test-repo` as `3560b57` and pushed (public repo). Only edits made after that commit are uncommitted; check `git status`.
 - **Generated data** is outside git: `/Users/madhura/LNP-ML-tests/curated/` (dev table, study table, report, and `sealed/`). LNPDB clone: `/Users/madhura/LNP-ML-tests/LNPDB`. Atlas CSV: `/Users/madhura/LNP-ML-tests/sources/atlas/`.
 
 ## Decisions and constraints
@@ -24,17 +25,17 @@ Predict mRNA transfection efficiency of LNP formulations from public data only, 
 
 ## Evidence
 
-Run 2026-10-02 in `lnp-il-design/` with `LNPDB_DIR` set: `make lint` and `make build` pass; `pytest` 20 passed, including the real-data test (counts pinned to LNPDB commit `fc7c389`). A live run gave 17,444 development rows, 1,474 sealed rows, hit rate 15.6%, and no sealed study ID in any dev-side file.
+Run 2026-10-02 in `lnp-il-design/` with `LNPDB_DIR` set: `make lint` and `make build` pass; `pytest` 20 passed before the Atlas step; 31 pass now, including the real-data test (counts pinned to LNPDB commit `fc7c389`). A live run gave 17,444 development rows, 1,474 sealed rows, hit rate 15.6%, and no sealed study ID in any dev-side file.
 
 Unverified: `make install && make test` from a fresh clone; the LiON study matching against LiON's Supplementary Table 1; the Atlas–LNPDB paper overlap (rough, by DOI suffix).
 
 ## Next action
 
-Run `aganitha-preflight` in `lnp-il-design/`. If it passes, decide how to ship with `aganitha-ship`. The author prefers to finish working before any push, so do not push without a fresh yes.
+Ship the Atlas step (`aganitha-ship`; a push to the public repo needs a fresh yes). After that, build the leave-one-study-out harness and the baselines. Pushing further changes needs a fresh yes from the author; the repo is public.
 
 ## Blockers and risks
 
 - **Partner input** (which synthesis routes their chemist can run; the result-file template) gates the generator and the first shortlist. The forward model does not depend on it.
 - **Author confirmations pending:** the new label rules, and whether `uptake` rows (479, LX_2024) belong in a transfection label ([design.md](design.md), open question 9).
-- **Stray files outside the repo** in `/Users/madhura/LNP-ML-tests/`: `lion_paper.txt` is extracted text of a copyrighted paper (the repo ignores it; consider deleting); `docs/`, `data_source_inventory.md` and `per_experiment_summary.csv` are stale duplicates of files now in the project.
+- **Cleanup deferred to the end of the project (author's decision).** Delete then, not now: `lion_paper.txt` in `/Users/madhura/LNP-ML-tests/` (extracted text of a copyrighted paper; the repo ignores it); and the stale duplicates `docs/`, `data_source_inventory.md` and `per_experiment_summary.csv` in the same folder. Nothing has been deleted since the COMET clone and LANCE files.
 - The repo root's `CLAUDE.md` points to an `AGENTS.md` that does not exist; left unchanged. An older clone at `/Users/madhura/madhura-test-repo` is 14 commits behind and untouched.

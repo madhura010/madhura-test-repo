@@ -1,8 +1,8 @@
 # Status
 
-Updated 2026-10-02.
+Updated 2026-10-06.
 
-Nothing is committed. Design decisions settled so far: result intake, evidence-flag calibration, pooled model with controls, model-selection score (mean rank), generator (full enumeration with reaction templates, scoped by the partner's chemistry).
+Ingest and Curate shipped to `main` in commit `3560b57` (2026-10-02). The Atlas step was built afterwards and is not committed. Design decisions settled so far: result intake, evidence-flag calibration, pooled model with controls, model-selection score (mean rank), generator (full enumeration with reaction templates, scoped by the partner's chemistry).
 
 ## Done
 
@@ -11,14 +11,15 @@ Nothing is committed. Design decisions settled so far: result intake, evidence-f
 - LiON's training overlap mapped to LNPDB study IDs (`design.md`, open question 3). Eleven LNPDB studies are contaminated for any LiON comparison.
 - Sealed holdout and hit threshold chosen (`design.md`, open questions 1 and 2), open to the author's veto.
 - Project scaffold: package skeleton, Makefile, front-door files.
-- Ingest and Curate built for LNPDB (`lnp-il data curate`), 20 tests passing, lint and type-check clean. On the real data: 17,444 development rows, 1,474 sealed rows, hit rate 15.6%. Code review done and its three priorities fixed (JSON errors, sealed outputs isolated in `sealed/`, `curate()` split up). Preflight run 2026-10-02 and its documentation items fixed.
+- Ingest and Curate built for LNPDB (`lnp-il data curate`), lint and type-check clean. On the real data: 17,444 development rows, 1,474 sealed rows, hit rate 15.6%. Code review done and its three priorities fixed (JSON errors, sealed outputs isolated in `sealed/`, `curate()` split up). Preflight run 2026-10-02 and its documentation items fixed.
+- Atlas step built: `lnp-il data atlas` (35 tests passing; code review done and its three priorities applied; preflight run 2026-10-06 and its items fixed). On the real files: 934 of 1,092 Atlas rows kept, 259 unique ILs, 240 not in LNPDB's development rows, none overlapping a sealed study.
 
 ## Next
 
 1. **Blocked on the partner:** which two or three synthesis routes their chemist can run. The generator and the first shortlist depend on it. The result-file template also needs agreeing with them.
 
 2. Author reviews the design doc and vetoes or confirms the holdout and hit threshold.
-3. Ship Ingest and Curate (`aganitha-ship`; the repo is public, so push only on a fresh yes). Then add Atlas structures (downloaded, no labels). LANCE is skipped and the COMET repository is not used, because of its license.
+3. Ship the Atlas step (preflight done; push only on a fresh yes). LANCE is skipped and the COMET repository is not used, because of its license.
 4. Confirm the new label rules and the uptake readout (`design.md`, decision 'Which rows count as labels', open question 9).
 5. Baselines under leave-one-study-out, then the model ladder.
 

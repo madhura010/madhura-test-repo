@@ -2,6 +2,19 @@
 
 Past-tense history, newest first. Present-tense state is in `docs/status.md`.
 
+## 2026-10-02 (later)
+
+**What:** Added the Atlas step: `lnp-il data atlas` reads the LNP Atlas CSV and compares its structures with LNPDB's development rows. Moved structure standardization into its own module so both sources share it.
+
+**Why:** Atlas adds 240 ILs that are not in LNPDB's labeled development rows, which widens the structure pool for the later generator. Its activity values are free text, so it contributes structures only.
+
+**Rejected:**
+- Reading the file as cp1252: it garbled every "±". The file is EUC-KR.
+- Using Atlas activity text as a label: mixed units and contexts cannot be z-scored within a study.
+- Comparing Atlas with all LNPDB rows: that would reveal which ILs are in the sealed holdout, and counted catalog-only rows that have no label. It compares with development rows only and drops Atlas rows that overlap a sealed study.
+- Running the full `curate()` from the Atlas step just to get IL key sets: it repeats hit calls and label normalization. A small `il_keys_by_split` shares curation's row rule instead.
+- Parsing the Atlas size, PDI and zeta fields now: they hold single values, ranges and "value ± error" in one column, and nothing uses them yet.
+
 ## 2026-10-02
 
 **What:** Started the project: vision, mental model and design draft; data inventory of the public LNP sources; Ingest and Curate for LNPDB (`lnp-il data curate`) with 20 tests; project scaffold (Makefile, AGENTS.md, project skill, dev-pack lock).

@@ -34,7 +34,7 @@ Items marked **(verify)** come from search snippets or a partial fetch only.
 
 Downloaded to a `sources/` folder outside git.
 
-**LNP Atlas** (`atlas/LNP_Atlas_DB_202509_v1.csv`, CC BY 4.0, text encoding cp1252)
+**LNP Atlas** (`atlas/LNP_Atlas_DB_202509_v1.csv`, CC BY 4.0, text encoding EUC-KR)
 
 - 1,092 rows, 28 columns, 62 papers. Structures parse for 934 rows (259 unique ILs).
 - 23 of those 259 ILs are already in LNPDB. **236 are not**, so Atlas adds new IL structures.
@@ -56,3 +56,5 @@ Downloaded to a `sources/` folder outside git.
 - What the paper reports: more than 6,000 labelled points, 3,028 LNPs in mouse DC2.4 and B16-F10 cells, bioluminescence log-transformed and scaled 0-1, 7 ionizable lipids, 3 sterols, 2 helper lipids, 2 PEG lipids, 13 molar ratios.
 
 **Decision (2026-10-02, author): LANCE is skipped.** Its value is formulation effects, not IL structure, and the only machine-readable copy is under a license that does not fit. Revisit only if the authors supply the data under terms that do.
+
+**Correction and result of the Atlas step (2026-10-02).** The Atlas CSV is EUC-KR, not cp1252 as first written. Read as cp1252 it garbles every "±" ("¡¾"); EUC-KR decodes all 13 non-ASCII characters correctly. Compared with LNPDB's labeled development rows only (`lnp-il data atlas`): of 1,092 rows, 152 have no structure and 6 are unparseable, leaving 934 rows and 259 unique ILs. 19 ILs are in LNPDB's development rows and 240 are not. No Atlas IL matches a sealed study. The earlier rough figure (23 shared, 236 new) compared against all LNPDB rows, including four ILs that appear only in BroadPharm catalog rows with no label.

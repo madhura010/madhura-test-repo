@@ -9,7 +9,7 @@ A public-data pipeline for predicting mRNA transfection efficiency of lipid nano
 
 ## What exists today
 
-Only data ingest and curation for LNPDB. There is no model, no candidate generator and no shortlist yet. Do not describe the project as predicting anything.
+Data ingest and curation for LNPDB, and a comparison of LNP Atlas structures with it. There is no model, no candidate generator and no shortlist yet. Do not describe the project as predicting anything.
 
 ## Set up
 
@@ -35,7 +35,15 @@ Output in `--out-dir`:
 | `curation_report.json` | Row counts at each step and the hit definition used. |
 | `sealed/` | The sealed holdout. Do not open before the final report. |
 
-Under `--json`, success is `{"ok": true, "data": ...}` and failure is `{"ok": false, "error": {"code", "message"}}` with exit code 1. A usage error exits 2.
+Under `--json` (either command), success is `{"ok": true, "data": ...}` and failure is `{"ok": false, "error": {"code", "message"}}` with exit code 1. A usage error exits 2.
+
+### Add Atlas structures
+
+```bash
+uv run lnp-il data atlas --atlas-csv <LNP_Atlas_DB_202509_v1.csv> --out-dir data/curated   # uses $LNPDB_DIR
+```
+
+Writes `atlas_formulations.csv` (rows with a parseable IL, flagged `in_lnpdb_dev`) and `atlas_report.json`. Atlas rows whose IL is also in a sealed study are dropped. The Atlas file is EUC-KR, not UTF-8.
 
 ## Rules that must hold
 
@@ -48,7 +56,7 @@ Under `--json`, success is `{"ok": true, "data": ...}` and failure is `{"ok": fa
 
 ## Data sources and licenses
 
-- LNPDB is the only source of labels. LNP Atlas has structures but its activity values are free text, so it is not used for labels.
+- LNPDB is the only source of labels. LNP Atlas has structures but its activity values are free text (`bioactivity_text`), so it is never used as a label.
 - The COMET/LANCE repository and data are not used. Its license excludes commercial research and development and forbids redistribution.
 - No copyrighted paper text, PDFs or raw datasets go into the repository.
 

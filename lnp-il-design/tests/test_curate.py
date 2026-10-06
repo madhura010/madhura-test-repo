@@ -8,7 +8,8 @@ from typer.testing import CliRunner
 
 from lnp_il.cli.main import app
 from lnp_il.core import DataSourceError, curate, lnpdb_csv_path, read_lnpdb, write_curated
-from lnp_il.core.curate import MIN_GROUP_SIZE, CurationResult, standardize_smiles
+from lnp_il.core.curate import MIN_GROUP_SIZE, CurationResult, il_keys_by_split
+from lnp_il.core.structures import standardize_smiles
 from lnp_il.core.studies import SEALED_HOLDOUT_STUDIES
 from tests.helpers import make_rows, write_lnpdb
 
@@ -53,6 +54,15 @@ def test_nothing_sealed_appears_in_development_outputs(lnpdb_dir: Path, tmp_path
         assert paths[name].parent == out
     assert paths["sealed"].parent == out / "sealed"
     assert "JL_2024" in paths["sealed_studies"].read_text()
+
+
+def test_il_keys_by_split_match_what_curate_keeps(lnpdb_dir: Path) -> None:
+    table = read_lnpdb(lnpdb_csv_path(lnpdb_dir))
+    keys = il_keys_by_split(table)
+    result = curate(table)
+    assert keys.dev == set(result.dev["il_inchikey"])
+    assert keys.sealed == set(result.sealed["il_inchikey"])
+    assert keys.dev and keys.sealed
 
 
 def test_standardize_strips_salts_and_matches_equivalent_smiles() -> None:
@@ -157,6 +167,21 @@ def test_cli_curate_json(lnpdb_dir: Path, tmp_path: Path) -> None:
     assert payload["data"]["sealed_rows"] == 25
 
 
+def test_cli_curate_plain_output_summarizes_the_counts(lnpdb_dir: Path, tmp_path: Path) -> None:
+    args = ["data", "curate", "--lnpdb-dir", str(lnpdb_dir), "-o", str(tmp_path / "o")]
+    result = CliRunner().invoke(app, args)
+    assert result.exit_code == 0, result.output
+    assert "✓ Curated 80 development rows" in result.stdout
+    assert "25 sealed rows written separately" in result.stdout
+    assert "5 no context, 2 no label, 4 non-delivery readout, 3 bad structure" in result.stdout
+
+
+def test_cli_version() -> None:
+    result = CliRunner().invoke(app, ["--version"])
+    assert result.exit_code == 0
+    assert result.stdout.startswith("lnp-il/")
+
+
 def test_cli_missing_argument_is_a_usage_error(lnpdb_dir: Path) -> None:
     result = CliRunner().invoke(app, ["data", "curate", "--lnpdb-dir", str(lnpdb_dir)])
     assert result.exit_code == 2
@@ -196,3 +221,6 @@ def test_real_lnpdb_matches_the_measured_counts() -> None:
     assert report.dropped_non_transfection_readout == 282
     assert report.dev_rows == 17444
     assert len(result.sealed) == 1474
+    keys = il_keys_by_split(read_lnpdb(lnpdb_csv_path(Path(os.environ["LNPDB_DIR"]))))
+    assert keys.dev == set(result.dev["il_inchikey"])
+    assert keys.sealed == set(result.sealed["il_inchikey"])

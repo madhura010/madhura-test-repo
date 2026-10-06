@@ -4,11 +4,14 @@ A docking-and-triage funnel for ionizable lipids: it ranks known and newly propo
 
 ## Using it
 
-The project is in the design phase. The one working command builds the curated dataset from LNPDB (clone it first, see below):
+The project is in the design phase. Two commands work today. The first builds the curated dataset from LNPDB (clone it first, see below):
 
 ```bash
 uv run lnp-il data curate --lnpdb-dir $LNPDB_DIR --out-dir data/curated
+uv run lnp-il data atlas --atlas-csv $ATLAS_CSV --lnpdb-dir $LNPDB_DIR --out-dir data/curated
 ```
+
+The second command adds structures from LNP Atlas (CC BY 4.0, [Zenodo 17243732](https://doi.org/10.5281/zenodo.17243732)). Atlas has no usable activity label.
 
 What exists today:
 
@@ -33,4 +36,12 @@ The data is not in this repo. Clone LNPDB (MIT code; check the data terms) next 
 ```bash
 git clone https://github.com/evancollins1/LNPDB.git ../LNPDB
 export LNPDB_DIR=$PWD/../LNPDB
+```
+
+For the `atlas` command, download the LNP Atlas CSV (CC BY 4.0) and point `ATLAS_CSV` at it. The file is EUC-KR text, which the command handles:
+
+```bash
+curl -L -o ../LNP_Atlas_DB_202509_v1.csv \
+  https://zenodo.org/api/records/17243733/files/LNP_Atlas_DB_202509_v1.csv/content
+export ATLAS_CSV=$PWD/../LNP_Atlas_DB_202509_v1.csv
 ```

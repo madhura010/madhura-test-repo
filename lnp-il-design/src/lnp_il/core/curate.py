@@ -12,12 +12,9 @@ from functools import reduce
 from pathlib import Path
 
 import pandas as pd
-from rdkit import Chem, rdBase
-from rdkit.Chem.MolStandardize import rdMolStandardize
 
+from lnp_il.core.structures import add_standard_structures
 from lnp_il.core.studies import LION_TRAINING_STUDIES, SEALED_HOLDOUT_STUDIES
-
-rdBase.DisableLog("rdApp.*")
 
 DEFAULT_HIT_QUANTILE = 0.16
 # Smallest (study, context) group that gets a hit call or is checked for off-standard labels.
@@ -78,26 +75,6 @@ class _Cleaned:
     dropped_non_transfection_readout: int
     dropped_bad_smiles: int
     renormalized_groups: int
-
-
-def standardize_smiles(smiles: str) -> tuple[str, str] | None:
-    """Return (canonical isomeric SMILES, InChIKey) for the largest fragment, or None if invalid."""
-    mol = Chem.MolFromSmiles(smiles)
-    if mol is None:
-        return None
-    mol = rdMolStandardize.LargestFragmentChooser().choose(mol)
-    return Chem.MolToSmiles(mol), Chem.MolToInchiKey(mol)
-
-
-def _add_standard_structures(table: pd.DataFrame) -> pd.DataFrame:
-    """Add il_smiles and il_inchikey; drop rows whose structure cannot be parsed."""
-    cache = {s: standardize_smiles(s) for s in table["il_smiles_raw"].dropna().unique()}
-    parsed = table["il_smiles_raw"].map(cache)
-    ok = parsed.notna()
-    out = table.loc[ok].copy()
-    out["il_smiles"] = parsed[ok].map(lambda pair: pair[0])
-    out["il_inchikey"] = parsed[ok].map(lambda pair: pair[1])
-    return out.drop(columns="il_smiles_raw")
 
 
 def _context_ids(rows: pd.DataFrame) -> pd.Series:
@@ -185,14 +162,34 @@ def _study_table(table: pd.DataFrame) -> pd.DataFrame:
     return studies.reset_index().sort_values("rows", ascending=False)
 
 
+@dataclass(frozen=True)
+class _RowMasks:
+    """Which rows have a context, a label, and a delivery readout. The one definition of "usable"."""
+
+    has_context: pd.Series
+    has_label: pd.Series
+    is_delivery: pd.Series
+
+    @property
+    def usable(self) -> pd.Series:
+        return self.has_context & self.has_label & self.is_delivery
+
+
+def _row_masks(table: pd.DataFrame) -> _RowMasks:
+    return _RowMasks(
+        has_context=table["model"].notna(),
+        has_label=table["label_z"].notna(),
+        is_delivery=~table["readout"].isin(NON_TRANSFECTION_READOUTS),
+    )
+
+
 def _clean(table: pd.DataFrame, hit_quantile: float) -> _Cleaned:
     """Drop unusable rows, standardize structures and labels, tag studies, and call hits."""
-    has_context = table["model"].notna()
-    has_label = table["label_z"].notna()
-    is_delivery = ~table["readout"].isin(NON_TRANSFECTION_READOUTS)
-    kept = table.loc[has_context & has_label & is_delivery]
+    masks = _row_masks(table)
+    has_context, has_label, is_delivery = masks.has_context, masks.has_label, masks.is_delivery
+    kept = table.loc[masks.usable]
 
-    rows = _add_standard_structures(kept)
+    rows = add_standard_structures(kept)
     rows["context_id"] = _context_ids(rows)
     rows["has_fragments"] = rows[list(_FRAGMENT_COLUMNS)].notna().all(axis=1)
     rows["lion_contaminated"] = rows["study_id"].isin(LION_TRAINING_STUDIES)
@@ -246,6 +243,28 @@ def curate(table: pd.DataFrame, hit_quantile: float = DEFAULT_HIT_QUANTILE) -> C
         report=_report(dev, hit_quantile),
         sealed=sealed.rows,
         sealed_studies=_study_table(sealed.rows),
+    )
+
+
+@dataclass(frozen=True)
+class IlKeys:
+    """InChIKeys of the ILs in usable development rows and in usable sealed rows."""
+
+    dev: frozenset[str]
+    sealed: frozenset[str]
+
+
+def il_keys_by_split(table: pd.DataFrame) -> IlKeys:
+    """InChIKeys of the ILs in the development and sealed rows that `curate` would keep.
+
+    Uses the same row rule and structure standardization as `curate`, without hit calls or
+    label normalization, for callers that only need to know which structures are where.
+    """
+    rows = add_standard_structures(table.loc[_row_masks(table).usable])
+    sealed = rows["study_id"].isin(SEALED_HOLDOUT_STUDIES)
+    return IlKeys(
+        dev=frozenset(rows.loc[~sealed, "il_inchikey"]),
+        sealed=frozenset(rows.loc[sealed, "il_inchikey"]),
     )
 
 

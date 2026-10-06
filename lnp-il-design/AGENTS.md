@@ -14,7 +14,7 @@ Public-data pipeline that predicts LNP transfection efficiency and proposes ioni
 | docs/status.md | Current state and next steps |
 | CHANGELOG.md | Past-tense history with the rejected alternative for each change |
 | docs/handoff.md | Transfer summary for the next operator. Read first when resuming |
-| src/lnp_il/core/ | ingest.py (read LNPDB), curate.py (clean, tag, split off the holdout), studies.py (sealed and LiON study sets) |
+| src/lnp_il/core/ | ingest.py (read LNPDB, Atlas), curate.py (clean, tag, split off the holdout), atlas.py (Atlas vs LNPDB), structures.py, studies.py (sealed and LiON study sets) |
 | src/lnp_il/cli/ | `lnp-il` command, thin over core. Model, design and select modules are planned in design.md |
 | tests/ | pytest |
 | skills/lnp-il-design/ | Project skill (SKILL.md): how to run the pipeline and the rules that must hold |
@@ -23,7 +23,7 @@ Public-data pipeline that predicts LNP transfection efficiency and proposes ioni
 ## Rules
 
 - Commands go through `make` (`make help` lists them). Toolchain is uv, ruff, ty, pytest.
-- `lnp-il data curate` builds the dataset. Development code reads `dataset_dev.csv`, `studies.csv` and `curation_report.json` only. The `sealed/` folder is opened once, for the final report.
+- `lnp-il data curate` builds the dataset; `lnp-il data atlas` adds Atlas structures (no labels). Development code reads `dataset_dev.csv`, `studies.csv` and `curation_report.json` only. The `sealed/` folder is opened once, for the final report.
 - Labels are z-scored within a study. Never compare or pool labels across studies without the study ID.
 - The sealed holdout (JL_2024, XH_2025, AP_2025, RG_2023) must not enter training, normalization, feature engineering or tuning. Do not read it before the final report.
 - Raw datasets are read-only inputs and are not committed. LNPDB is cloned separately (see README); set `LNPDB_DIR` to its path.

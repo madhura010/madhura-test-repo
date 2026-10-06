@@ -37,6 +37,8 @@ def root(
     \b
     Commands:
       data curate --lnpdb-dir <path> --out-dir <path>   Build the curated dataset.
+      data atlas --atlas-csv <path> --lnpdb-dir <path> --out-dir <path>
+                                                        Compare Atlas structures with LNPDB.
     """
     ctx.ensure_object(dict)
     ctx.obj["json"] = json_output
