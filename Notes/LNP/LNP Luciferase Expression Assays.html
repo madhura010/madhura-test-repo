@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LNP Luciferase Expression Assays</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* Layout: single reading column, tables break out wider and scroll on their own. */
+:root {
+  --bg: #f6f8f7;
+  --surface: #ffffff;
+  --surface-alt: #f0f4f3;
+  --ink: #141d1c;
+  --ink-soft: #566460;
+  --ink-faint: #7d8a86;
+  --line: #dde3e1;
+  --line-strong: #c3ccc9;
+  --accent: #0b6f66;
+  --accent-soft: #e2f0ee;
+  --warn: #8a5a1a;
+  --warn-soft: #faf0df;
+
+  --font-display: "Newsreader", Georgia, "Times New Roman", serif;
+  --font-body: "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0e1413;
+    --surface: #151d1c;
+    --surface-alt: #1b2423;
+    --ink: #e7edeb;
+    --ink-soft: #9aa8a4;
+    --ink-faint: #76837f;
+    --line: #273230;
+    --line-strong: #37433f;
+    --accent: #4ecdbc;
+    --accent-soft: #15302d;
+    --warn: #d9ad6a;
+    --warn-soft: #2a2317;
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme="dark"] {
+  --bg: #0e1413;
+  --surface: #151d1c;
+  --surface-alt: #1b2423;
+  --ink: #e7edeb;
+  --ink-soft: #9aa8a4;
+  --ink-faint: #76837f;
+  --line: #273230;
+  --line-strong: #37433f;
+  --accent: #4ecdbc;
+  --accent-soft: #15302d;
+  --warn: #d9ad6a;
+  --warn-soft: #2a2317;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+
+html, body { margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+.page {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 56px 24px 96px;
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+}
+
+header.masthead {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding-bottom: 28px;
+  border-bottom: 2px solid var(--line-strong);
+}
+
+.eyebrow {
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--accent);
+  font-weight: 600;
+}
+
+h1 {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: clamp(2rem, 5vw, 3rem);
+  line-height: 1.12;
+  margin: 0;
+  text-wrap: balance;
+  letter-spacing: -0.015em;
+}
+
+.standfirst {
+  font-family: var(--font-display);
+  font-size: clamp(1.05rem, 2.2vw, 1.25rem);
+  line-height: 1.5;
+  color: var(--ink-soft);
+  max-width: 62ch;
+  margin: 0;
+}
+
+h2 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: clamp(1.4rem, 3vw, 1.85rem);
+  line-height: 1.2;
+  margin: 0 0 4px;
+  text-wrap: balance;
+  letter-spacing: -0.01em;
+}
+
+h3 {
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 1rem;
+  margin: 0 0 4px;
+  color: var(--ink);
+}
+
+section {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+p { margin: 0; max-width: 72ch; }
+
+.prose p + p { margin-top: 12px; }
+
+strong { font-weight: 600; }
+
+/* Callout */
+.note {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: var(--warn-soft);
+  border-left: 3px solid var(--warn);
+  padding: 16px 20px;
+  border-radius: 0 6px 6px 0;
+}
+.note .note-label {
+  font-size: 11px;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--warn);
+}
+.note p { max-width: 78ch; font-size: 0.94rem; }
+
+/* Tables */
+.table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+}
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+  min-width: 980px;
+  font-size: 0.875rem;
+  font-variant-numeric: tabular-nums;
+}
+
+thead th {
+  position: sticky;
+  top: 0;
+  background: var(--surface-alt);
+  text-align: left;
+  font-weight: 600;
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--line-strong);
+  white-space: nowrap;
+  z-index: 1;
+}
+
+tbody td {
+  padding: 14px;
+  border-bottom: 1px solid var(--line);
+  vertical-align: top;
+  line-height: 1.5;
+}
+
+tbody tr:last-child td { border-bottom: none; }
+
+tbody tr:hover td { background: var(--surface-alt); }
+
+td.assay {
+  font-weight: 600;
+  color: var(--ink);
+  min-width: 190px;
+}
+
+td.formula {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: var(--accent);
+  min-width: 190px;
+}
+
+td.range {
+  min-width: 215px;
+  color: var(--ink);
+}
+
+td.caveat, td.defn { color: var(--ink-soft); min-width: 215px; }
+
+td.norm { color: var(--ink-soft); min-width: 175px; }
+
+/* Formula display block */
+.formula-block {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 22px 24px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 28px;
+  align-items: center;
+  font-family: var(--font-mono);
+  font-size: 0.95rem;
+  color: var(--ink);
+  overflow-x: auto;
+}
+
+.eq { display: inline-flex; align-items: center; gap: 8px; white-space: nowrap; }
+
+.frac {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  vertical-align: middle;
+  margin: 0 2px;
+}
+.frac .num { padding: 0 8px 3px; border-bottom: 1.5px solid currentColor; }
+.frac .den { padding: 3px 8px 0; }
+
+sub, sup { font-size: 0.72em; }
+
+/* Ranked list */
+ol.ranked {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: rank;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+ol.ranked li {
+  counter-increment: rank;
+  display: grid;
+  grid-template-columns: 34px 1fr;
+  gap: 14px;
+  align-items: start;
+  padding: 14px 16px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+ol.ranked li::before {
+  content: counter(rank);
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 0.8rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+ol.ranked li p { font-size: 0.92rem; }
+ol.ranked li .tier-name { font-weight: 600; color: var(--ink); }
+
+/* Portability gradient marker */
+ol.ranked li:nth-child(1) { border-left: 3px solid var(--accent); }
+ol.ranked li:nth-child(5) { border-left: 3px solid var(--line-strong); }
+
+footer.colophon {
+  border-top: 1px solid var(--line);
+  padding-top: 20px;
+  color: var(--ink-faint);
+  font-size: 0.82rem;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+@media (max-width: 640px) {
+  .page { padding: 36px 16px 64px; gap: 32px; }
+  ol.ranked li { grid-template-columns: 28px 1fr; gap: 10px; }
+}
+</style>
+</head>
+<body>
+<div class="page">
+
+<header class="masthead">
+  <span class="eyebrow">Assay reference</span>
+  <h1>LNP Luciferase Expression Assays</h1>
+  <p class="standfirst">Every assay here returns luminescence in arbitrary units. What distinguishes them is the denominator, and the denominator decides whether the value means anything outside its own plate.</p>
+</header>
+
+<section>
+  <h2>How to read this</h2>
+  <div class="note">
+    <span class="note-label">On the value ranges</span>
+    <p>The ranges given are approximate, order-of-magnitude expectations from typical practice, not sourced figures. They are there to tell you whether a number you are looking at is plausible, saturating, or near noise — not to serve as a reference standard. Absolute luminescence depends on the luminometer, its gain and integration time, the substrate kit, the lysate volume and the cell number, so a value an order of magnitude outside these ranges usually indicates a different instrument setting rather than different biology. Treat every range as "the exponent is usually this", and calibrate against your own background and positive control.</p>
+  </div>
+  <p>Where a range is expressed as a ratio or a fold change it is far more stable, and those are the rows worth comparing against published work.</p>
+</section>
+
+<section>
+  <h2>In vitro assays</h2>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Assay</th>
+          <th>Definition</th>
+          <th>Formula</th>
+          <th>Typical range (approx.)</th>
+          <th>Caveat</th>
+          <th>Post-normalisation</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="assay">Endpoint firefly luciferase (Fluc) lysate assay</td>
+          <td class="defn">Cells treated with Fluc-mRNA LNP, lysed at a fixed time, luciferin + ATP added, integrated photon count read</td>
+          <td class="formula">Signal = RLU<sub>sample</sub> − RLU<sub>mock</sub></td>
+          <td class="range">Mock 10²–10³ RLU; a working LNP in HEK293 or HeLa at 100 ng/well, 24 h: 10⁵–10⁸ RLU. Signal-to-background 10³–10⁵ for a good formulation</td>
+          <td class="caveat">Population total; cannot separate many weak cells from few bright ones. RLU is instrument-arbitrary</td>
+          <td class="norm">Required: divide by protein or viable-cell signal</td>
+        </tr>
+        <tr>
+          <td class="assay">Dual-luciferase (Fluc/Rluc)</td>
+          <td class="defn">Fluc from the test LNP, Rluc from a co-delivered or co-formulated control, read sequentially in one lysate</td>
+          <td class="formula">Ratio = RLU<sub>Fluc</sub> / RLU<sub>Rluc</sub></td>
+          <td class="range">Ratio 0.1–10 depending on the promoter and molar pairing; 1–50 fold spread between constructs within one study</td>
+          <td class="caveat">Assumes both reporters reach the same cells in the formulated ratio — fine for co-encapsulated mRNA, weaker for two separate LNPs. Rluc can be squelched by strong Fluc expression</td>
+          <td class="norm">Fold change of the ratio vs a reference LNP</td>
+        </tr>
+        <tr>
+          <td class="assay">NanoLuc (Nluc) / Nano-Glo</td>
+          <td class="defn">Same design using the smaller, brighter NanoLuc with furimazine substrate</td>
+          <td class="formula">Signal = RLU<sub>Nluc</sub> − RLU<sub>mock</sub></td>
+          <td class="range">10⁶–10⁹ RLU at the same dose; roughly 10–100 fold above the matching Fluc value</td>
+          <td class="caveat">Detector saturation is common; furimazine is less stable and autoluminesces; spectral crossover into the Fluc channel in dual formats</td>
+          <td class="norm">As for Fluc</td>
+        </tr>
+        <tr>
+          <td class="assay">Protein-normalised specific activity</td>
+          <td class="defn">Luminescence divided by total protein in the same lysate (BCA or Bradford)</td>
+          <td class="formula">(RLU<sub>sample</sub> − RLU<sub>blank</sub>) / protein (mg)</td>
+          <td class="range">10⁶–10⁹ RLU/mg protein for a working formulation; protein per well 0.05–0.5 mg in a 96-well format</td>
+          <td class="caveat">Protein content itself falls under LNP toxicity, which inflates the ratio. Lysis detergents interfere with BCA unless a compatible kit is used</td>
+          <td class="norm">Usually the final value; can still be expressed as fold over reference</td>
+        </tr>
+        <tr>
+          <td class="assay">Viability-normalised expression</td>
+          <td class="defn">Luminescence divided by a parallel viability measurement</td>
+          <td class="formula">RLU<sub>sample</sub> / viable cell count</td>
+          <td class="range">10⁰–10³ RLU per cell; relative viability above 80% of mock is the usual acceptance threshold</td>
+          <td class="caveat">CellTiter-Glo is itself luminescent — run it in separate parallel wells, never the same well. Metabolic assays conflate fewer cells with less active cells</td>
+          <td class="norm">Fold over reference LNP at matched dose</td>
+        </tr>
+        <tr>
+          <td class="assay">mRNA-normalised expression</td>
+          <td class="defn">Luminescence divided by delivered reporter mRNA measured by RT-qPCR or ddPCR on the same wells</td>
+          <td class="formula">TE = RLU / mRNA copies per cell</td>
+          <td class="range">10²–10⁵ mRNA copies per cell after a standard dose; TE spans 1–20 fold across formulations</td>
+          <td class="caveat">Measures total cell-associated mRNA, including mRNA still trapped in endosomes, so it understates true cytosolic translation efficiency</td>
+          <td class="norm">Fold over reference; log₂ for modelling</td>
+        </tr>
+        <tr>
+          <td class="assay">Uptake-normalised (endosomal escape)</td>
+          <td class="defn">Luminescence divided by internalised labelled mRNA or lipid signal</td>
+          <td class="formula">Escape index = RLU / internalised cargo signal</td>
+          <td class="range">Escape fraction is typically 1–4% of internalised cargo, so the index is small and its spread across formulations is wide</td>
+          <td class="caveat">Surface-bound particles count as internalised unless the extracellular signal is quenched or the cells are trypsin-stripped</td>
+          <td class="norm">Fold over reference</td>
+        </tr>
+        <tr>
+          <td class="assay">Secreted luciferase (Gaussia, Cypridina)</td>
+          <td class="defn">Supernatant sampled repeatedly; reporter accumulates in the medium</td>
+          <td class="formula">Σ (RLU<sub>t</sub> × dilution factor), corrected for volume removed</td>
+          <td class="range">10⁴–10⁷ RLU per 10–20 µL of medium; signal rises for 24–72 h then plateaus</td>
+          <td class="caveat">Flash kinetics require injectors; the sampling schedule is part of the measurement; medium pH and serum affect activity</td>
+          <td class="norm">Area under the curve, then fold over reference</td>
+        </tr>
+        <tr>
+          <td class="assay">Live-cell kinetic luciferase</td>
+          <td class="defn">Cell-permeable luciferin left in the medium, plate read repeatedly</td>
+          <td class="formula">AUC = ∫ RLU dt, by trapezoid</td>
+          <td class="range">Peak between 6 and 24 h for mRNA LNP; AUC 10⁶–10⁹ RLU·h</td>
+          <td class="caveat">ATP-dependent and substrate-depleting over long runs; separates kinetics from magnitude, which an endpoint cannot</td>
+          <td class="norm">AUC per mg protein or per viable cell</td>
+        </tr>
+        <tr>
+          <td class="assay">Dose–response / in vitro potency</td>
+          <td class="defn">Luminescence across an mRNA dose series</td>
+          <td class="formula">EC<sub>50</sub> from a 4PL fit of log(dose) vs RLU</td>
+          <td class="range">EC<sub>50</sub> roughly 1–100 ng mRNA per well in a 96-well format; Hill slope usually 0.8–2</td>
+          <td class="caveat">A single dose can rank LNPs incorrectly because curves cross; the top plateau may be set by toxicity rather than biology</td>
+          <td class="norm">Relative potency = EC<sub>50,reference</sub> / EC<sub>50,test</sub></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>The four-parameter logistic used for the dose–response fit</h3>
+  <div class="formula-block">
+    <span class="eq">
+      Y = Bottom +
+      <span class="frac">
+        <span class="num">Top − Bottom</span>
+        <span class="den">1 + (EC<sub>50</sub> / X)<sup>H</sup></span>
+      </span>
+    </span>
+  </div>
+  <p>where X is mRNA dose, Y is luminescence and H is the Hill slope.</p>
+</section>
+
+<section>
+  <h2>In vivo assays</h2>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Assay</th>
+          <th>Definition</th>
+          <th>Formula</th>
+          <th>Typical range (approx.)</th>
+          <th>Caveat</th>
+          <th>Post-normalisation</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="assay">Whole-animal BLI (IVIS)</td>
+          <td class="defn">Luciferin injected (commonly 150 mg/kg IP), animal imaged in a cooled CCD chamber, photons counted in a region of interest</td>
+          <td class="formula">Total flux (p/s) over the ROI; radiance = p/s/cm²/sr</td>
+          <td class="range">Background 10⁴–10⁵ p/s; liver signal after 0.5 mg/kg IV mRNA LNP 10⁸–10¹⁰ p/s; extrahepatic tissues 10⁶–10⁸ p/s</td>
+          <td class="caveat">Depth attenuation means a liver and a muscle signal of equal magnitude are not equal expression; fur, pigmentation, anaesthesia depth, luciferin dose and the delay to imaging all shift the value</td>
+          <td class="norm">Background-subtracted flux, then fold over a benchmark LNP imaged in the same session</td>
+        </tr>
+        <tr>
+          <td class="assay">Kinetic BLI series</td>
+          <td class="defn">Repeated imaging of the same animal over hours or days</td>
+          <td class="formula">AUC = ∫ flux dt</td>
+          <td class="range">Peak at 4–6 h after IV dosing, back to background by 48–72 h; AUC 10⁹–10¹¹ p/s·h</td>
+          <td class="caveat">Luciferin pharmacokinetics differ between tissues, so peak time is organ-dependent; repeated anaesthesia has cumulative effects</td>
+          <td class="norm">AUC per mg/kg mRNA dose</td>
+        </tr>
+        <tr>
+          <td class="assay">Ex vivo organ BLI</td>
+          <td class="defn">Organs excised after luciferin administration and imaged individually</td>
+          <td class="formula">% = flux<sub>organ</sub> / Σ flux<sub>all organs</sub> × 100</td>
+          <td class="range">Liver typically 70–95% of total flux for a conventional LNP; spleen 1–20%; lung under 5% unless the formulation is lung-targeted</td>
+          <td class="caveat">Time between cull and imaging matters because signal decays; the percentage is compositional, so a rise in one organ mathematically lowers the others</td>
+          <td class="norm">Percentage of total flux, or flux per gram of tissue</td>
+        </tr>
+        <tr>
+          <td class="assay">Tissue homogenate luciferase assay</td>
+          <td class="defn">Organ homogenised, lysate assayed on a luminometer</td>
+          <td class="formula">RLU per mg tissue, or RLU / protein (mg)</td>
+          <td class="range">10⁵–10⁹ RLU/mg protein in liver; 10³–10⁵ in off-target organs; untreated tissue 10²–10³</td>
+          <td class="caveat">Avoids depth attenuation and is the quantitative reference method, but it is terminal and gives one timepoint per animal</td>
+          <td class="norm">Per mg protein, then fold over benchmark</td>
+        </tr>
+        <tr>
+          <td class="assay">Dose–response / in vivo potency</td>
+          <td class="defn">BLI flux across an mRNA dose series</td>
+          <td class="formula">ED<sub>50</sub> from a 4PL fit of log(dose) vs flux</td>
+          <td class="range">ED<sub>50</sub> roughly 0.01–0.3 mg/kg for hepatic expression with a current-generation ionisable lipid</td>
+          <td class="caveat">Inter-animal variability is large, so groups below 4–5 give unstable fits; the top plateau may be set by tolerability</td>
+          <td class="norm">Relative potency vs benchmark</td>
+        </tr>
+        <tr>
+          <td class="assay">Benchmark-relative potency</td>
+          <td class="defn">Test LNP compared to a standard ionisable lipid (MC3, ALC-0315, SM-102) in the same experiment</td>
+          <td class="formula">Fold = flux<sub>test</sub> / flux<sub>benchmark</sub></td>
+          <td class="range">0.1–10 fold is the usual span; above 10 fold over MC3 is a strong claim and warrants a dose–response</td>
+          <td class="caveat">Only meaningful when the benchmark ran contemporaneously, at the same dose, route and timepoint</td>
+          <td class="norm">This is itself the normalised value — the most portable in vivo metric</td>
+        </tr>
+        <tr>
+          <td class="assay">Organ selectivity (SORT-type)</td>
+          <td class="defn">Ratio of expression in a target organ to another organ</td>
+          <td class="formula">flux<sub>target</sub> / flux<sub>liver</sub></td>
+          <td class="range">Below 0.1 for conventional LNPs; 1–10 or higher for deliberately retargeted formulations</td>
+          <td class="caveat">Ratios are stable to overall dose but hide whether absolute expression rose or the liver signal simply fell</td>
+          <td class="norm">Report alongside absolute flux, never alone</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="note">
+    <span class="note-label">Inter-animal variability</span>
+    <p>Expect a CV of 30–100% on BLI flux within a dose group. A two-fold difference between formulations with n = 3 is usually not significant; three to five fold with n = 5 generally is.</p>
+  </div>
+</section>
+
+<section>
+  <h2>Background floors and detection limits</h2>
+  <p>A range is meaningless without its floor. Define the floor from your own controls on every plate or imaging session, using:</p>
+  <div class="formula-block">
+    <span class="eq">LOD = μ<sub>background</sub> + 3σ<sub>background</sub></span>
+    <span class="eq">LOQ = μ<sub>background</sub> + 10σ<sub>background</sub></span>
+  </div>
+  <div class="table-wrap">
+    <table style="min-width: 760px;">
+      <thead>
+        <tr>
+          <th>Assay</th>
+          <th>Background source</th>
+          <th>Typical floor</th>
+          <th>What sets it</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="assay">Fluc lysate</td>
+          <td class="defn">Mock-transfected lysate + substrate</td>
+          <td class="range">10²–10³ RLU</td>
+          <td class="caveat">Substrate autoluminescence and detector dark counts</td>
+        </tr>
+        <tr>
+          <td class="assay">NanoLuc</td>
+          <td class="defn">Mock lysate + furimazine</td>
+          <td class="range">10³–10⁴ RLU</td>
+          <td class="caveat">Furimazine autoluminescence, which is higher than luciferin's</td>
+        </tr>
+        <tr>
+          <td class="assay">Secreted luciferase</td>
+          <td class="defn">Conditioned medium from mock wells</td>
+          <td class="range">10³–10⁴ RLU</td>
+          <td class="caveat">Serum components and medium pH</td>
+        </tr>
+        <tr>
+          <td class="assay">Whole-animal BLI</td>
+          <td class="defn">Untreated animal, same session and exposure</td>
+          <td class="range">10⁴–10⁵ p/s</td>
+          <td class="caveat">Chamber stray light, CCD dark current, animal chow autofluorescence</td>
+        </tr>
+        <tr>
+          <td class="assay">Ex vivo organ BLI</td>
+          <td class="defn">Organ from an untreated animal</td>
+          <td class="range">10⁴ p/s per organ</td>
+          <td class="caveat">Same, plus residual blood</td>
+        </tr>
+        <tr>
+          <td class="assay">Tissue homogenate</td>
+          <td class="defn">Homogenate from an untreated animal</td>
+          <td class="range">10²–10³ RLU/mg protein</td>
+          <td class="caveat">Endogenous ATP and substrate background</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="prose">
+    <p>Two practical consequences. First, a formulation reading within 3 SD of mock has not been shown to work, whatever the fold number looks like after dividing by a small background. Second, fold changes calculated against a near-zero denominator are unstable — subtract background before dividing, never after, and report the raw background value so a reader can check it.</p>
+    <p><strong>Saturation at the top.</strong> Photomultipliers saturate, usually somewhere above 10⁷–10⁸ RLU depending on the instrument. A set of strong formulations that all read the same value is more likely saturated than equipotent; dilute the lysate or lower the gain and re-read before concluding anything.</p>
+  </div>
+</section>
+
+<section>
+  <h2>Which metric travels between studies</h2>
+  <p>In descending order of portability:</p>
+  <ol class="ranked">
+    <li><p><span class="tier-name">Relative potency against a contemporaneous benchmark lipid</span> — the only in vivo number that survives a change of imaging system. Range 0.1–10 fold.</p></li>
+    <li><p><span class="tier-name">Fold change over a reference construct or formulation in the same experiment</span> — range 1–100 fold in vitro, 1–10 fold in vivo.</p></li>
+    <li><p><span class="tier-name">Protein- or mRNA-normalised specific activity</span> — comparable within a lab, roughly comparable between labs using the same readout and instrument class.</p></li>
+    <li><p><span class="tier-name">Organ selectivity ratios</span> — dimensionless and reasonably portable, but they hide absolute magnitude.</p></li>
+    <li><p><span class="tier-name">Raw total flux or RLU</span> — not portable at all.</p></li>
+  </ol>
+  <p>For a pooled modelling dataset, record which tier each value came from. Mixing tier 1 and tier 5 values in one continuous target is the most common way these datasets go wrong.</p>
+</section>
+
+<footer class="colophon">
+  <span>Value ranges are order-of-magnitude expectations from typical practice, not sourced figures.</span>
+  <span>Last updated 18 November 2026.</span>
+</footer>
+
+</div>
+</body>
+</html>
