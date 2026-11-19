@@ -1,0 +1,359 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Targeted LNP Patent Table</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600&display=swap">
+<style>
+/* Layout: sticky filter bar over a wide, scrollable comparison table; click a row for claim 1, family members and the lipid used in each formulation. */
+:root{
+  --bg:#f6f7f9; --surface:#ffffff; --fg:#14181f; --muted:#5b6573; --line:#dde1e7;
+  --accent:#0b6e8a; --accent-soft:#dff0f5; --warn:#8a5a00; --warn-soft:#fbefd2;
+  --t-tcell:#0b6e8a; --t-hsc:#6a3fb5; --t-leuk:#a8431f; --t-endo:#1f7a4d; --t-lung:#2a5db0; --t-liver:#8a6a00; --t-tumor:#b0305c;
+  --font-body:'Inter',system-ui,sans-serif; --font-head:'Space Grotesk','Inter',system-ui,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0f1318; --surface:#171c23; --fg:#e6e9ee; --muted:#9aa5b4; --line:#2a313b;
+  --accent:#5cc3de; --accent-soft:#16323b; --warn:#f0c15c; --warn-soft:#3a2f12;
+  --t-tcell:#5cc3de; --t-hsc:#b79af0; --t-leuk:#f09a78; --t-endo:#6fd49e; --t-lung:#8fb4f5; --t-liver:#e0c25c; --t-tumor:#f08ab0; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f1318; --surface:#171c23; --fg:#e6e9ee; --muted:#9aa5b4; --line:#2a313b;
+  --accent:#5cc3de; --accent-soft:#16323b; --warn:#f0c15c; --warn-soft:#3a2f12;
+  --t-tcell:#5cc3de; --t-hsc:#b79af0; --t-leuk:#f09a78; --t-endo:#6fd49e; --t-lung:#8fb4f5; --t-liver:#e0c25c; --t-tumor:#f08ab0; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font:14px/1.5 var(--font-body);margin:0;
+  padding-block:20px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.wrap{max-width:1500px;margin:0 auto}
+h1{font:600 26px/1.2 var(--font-head);margin:0 0 4px;text-wrap:balance}
+.sub{color:var(--muted);margin:0 0 14px;max-width:80ch}
+.note{background:var(--warn-soft);color:var(--fg);border:1px solid var(--line);border-left:3px solid var(--warn);padding:10px 12px;border-radius:4px;margin:0 0 16px;max-width:112ch;font-size:13px}
+.bar{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:flex-start;margin-bottom:12px}
+.bar input[type=search]{flex:1 1 260px;min-width:0;max-width:380px;padding:8px 10px;border:1px solid var(--line);background:var(--surface);color:var(--fg);border-radius:4px;font:inherit}
+.grp{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.grp>span{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-right:2px}
+.chip{border:1px solid var(--line);background:var(--surface);color:var(--fg);padding:4px 10px;border-radius:999px;font:inherit;font-size:12.5px;cursor:pointer}
+.chip[aria-pressed=true]{background:var(--accent);border-color:var(--accent);color:var(--bg)}
+.chip:focus-visible,button:focus-visible,input:focus-visible,tr[tabindex]:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.count{color:var(--muted);font-size:12.5px;margin:0 0 8px}
+.scroll{overflow-x:auto;border:1px solid var(--line);border-radius:6px;background:var(--surface)}
+table.main{border-collapse:separate;border-spacing:0;width:100%;min-width:1250px}
+th,td{padding:10px 12px;text-align:left;vertical-align:top;border-bottom:1px solid var(--line);font-size:13px}
+table.main>thead th{position:sticky;top:0;background:var(--surface);font:600 11px var(--font-body);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);white-space:nowrap;z-index:2}
+th button{all:unset;cursor:pointer}
+th button:hover{color:var(--fg)}
+table.main td:first-child,table.main>thead th:first-child{position:sticky;left:0;background:var(--surface);z-index:1;min-width:200px;border-right:1px solid var(--line)}
+table.main>thead th:first-child{z-index:3}
+tr.row{cursor:pointer}
+tr.row:hover td,tr.row:hover td:first-child{background:var(--accent-soft)}
+.asg{font:600 14px var(--font-head)}
+.pid{font-variant-numeric:tabular-nums;color:var(--muted);font-size:12px}
+.pid a{color:var(--accent)}
+.tag{display:inline-block;border:1px solid currentColor;border-radius:3px;padding:0 6px;margin:0 4px 4px 0;font-size:11.5px;font-weight:500;white-space:nowrap}
+.t-tcell{color:var(--t-tcell)}.t-hsc{color:var(--t-hsc)}.t-leuk{color:var(--t-leuk)}.t-endo{color:var(--t-endo)}.t-lung{color:var(--t-lung)}.t-liver{color:var(--t-liver)}.t-tumor{color:var(--t-tumor)}
+.mode{font-size:11.5px;color:var(--muted)}
+.mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px}
+.stat{font-size:11.5px;color:var(--muted)}
+tr.detail td{background:var(--bg);padding:14px 16px}
+tr.detail td:first-child{background:var(--bg)}
+.dwrap{max-width:1150px;position:sticky;left:16px;display:grid;gap:16px}
+.dgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
+.dwrap h4{margin:0 0 4px;font:600 11px var(--font-body);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.dwrap p,.dwrap ul{margin:0;font-size:13px}
+.dwrap ul{padding-left:18px}
+table.forms{border-collapse:collapse;width:100%;font-size:12.5px;background:var(--surface);border:1px solid var(--line)}
+table.forms th{background:var(--surface);font:600 10.5px var(--font-body);letter-spacing:.05em;text-transform:uppercase;color:var(--muted);padding:6px 8px;border-bottom:1px solid var(--line)}
+table.forms td{padding:6px 8px;border-bottom:1px solid var(--line);font-size:12.5px}
+table.forms td:first-child{position:static;min-width:0;border-right:0}
+.ftab{overflow-x:auto}
+.empty{padding:28px;text-align:center;color:var(--muted)}
+.legend{margin-top:14px;color:var(--muted);font-size:12px;max-width:112ch}
+@media (max-width:600px){h1{font-size:22px}}
+@media (prefers-reduced-motion:no-preference){tr.row td{transition:background .12s}}
+</style>
+
+<div class="wrap">
+  <h1>Targeted LNP Patent Table</h1>
+  <p class="sub">Sixteen patent families on targeted or organ-selective lipid nanoparticles, including Bristol Myers Squibb and allied companies (Juno, Nitto Denko) and Orna, compared by target cell, cargo, disease, ionizable lipid chemistry and formulation. Click a row for claim 1, family members and the ionizable lipid used in each formulation.</p>
+  <p class="note"><strong>How this was checked.</strong> The full text of the lead patents in families A to J was downloaded and read for claim 1, the examples and the formulation tables. For the BMS and allied families (K to P) I read the claims and the formulation text but not every example, and Orna (N) covers 13 of about 175 documents. Orbital Therapeutics' targeted-LNP filing for OTX-201 is not in the snapshot, so it is not in this table. Family members come from SureChEMBL (release 2026-08-18) and Google Patents. Ionizable-lipid structures are drawings in the patents, so they appear here by name or code only. In the three WO publications, some example tables are images, so those sizes and N/P ratios are marked "not stated". Not a legal or freedom-to-operate opinion.</p>
+
+  <div class="bar">
+    <input id="q" type="search" placeholder="Search lipid, ligand, disease, assignee…" aria-label="Search table">
+    <div class="grp" id="f-cell"><span>Target cell</span></div>
+    <div class="grp" id="f-cargo"><span>Cargo</span></div>
+    <div class="grp" id="f-mode"><span>Targeting</span></div>
+    <div class="grp" id="f-grp"><span>Company</span></div>
+  </div>
+  <p class="count" id="count" aria-live="polite"></p>
+
+  <div class="scroll">
+    <table class="main">
+      <thead><tr id="head"></tr></thead>
+      <tbody id="body"></tbody>
+    </table>
+  </div>
+  <p class="legend">Mol% ratios follow the order each patent gives. Status is Google Patents' display label for the lead document, not a legal determination. JP, KR, AU, CA and other national entries appear only where Google listed them.</p>
+</div>
+
+<script>
+const G='https://patents.google.com/patent/';
+const D=[
+{id:'A',asg:'Ramot / Tel-Aviv Univ.',pn:'US10920246B2',date:'2021-02-16',status:'Active (to 2036)',
+ cells:[['Leukocytes (CD4+ T, B cells)','leuk']],mode:'Antibody',
+ claim:'A particle with a lipid membrane of DLin-MC3-DMA, cholesterol, DSPC, DMG-PEG and DSPE-PEG-maleimide conjugated to an antibody (anti-CD38, CD4, CD8 or CD3) or fragment.',
+ ligand:'Anti-CD38 (clone THB-7), anti-CD4 (YTS 177), anti-CD8, anti-CD3 mAbs. DTT-reduced antibody coupled to DSPE-PEG-maleimide after particle formation.',
+ cargoTags:['siRNA'],cargo:'siRNA against cyclin D1 and CD45; luciferase siRNA as control. Claims cover siRNA, miRNA, shRNA, antisense.',
+ disease:'Mantle cell lymphoma (anti-CD38, xenograft survival). Leukemia, myeloma, HIV, autoimmunity listed, not tested.',
+ lipid:'DLin-MC3-DMA (pKa 6.44)',lipidChem:'Amine-headed, dilinoleyl-tailed ionizable lipid; DLinDMA and DLin-KC2-DMA are alternatives.',
+ form:'MC3 / DSPC / Chol / DMG-PEG / DSPE-PEG-Mal = 50:10:38:1.5:0.5. siRNA:lipid 1:16 w/w; N/P not stated. Microfluidic mixing, 1:3 ethanol:aqueous, 2 mL/min. Anti-CD38 LNP 116 ± 7.9 nm, PDI 0.157, encapsulation over 90%.',
+ forms:[['LNP 1','DLin-MC3-DMA','MC3 / DSPC / Chol / DMG-PEG / DSPE-PEG-Mal 50:10:38:1.5:0.5','siRNA (CD45)'],
+        ['LNP 2 (anti-CD38, MCL)','DLin-MC3-DMA','MC3 / Chol / DSPC / DMG-PEG / DSPE-PEG-Mal 50:38:10:1.95:0.05','siRNA (cyclin D1); 116 nm, PDI 0.157'],
+        ['LNP 3 variants','DLin-KC2-DMA','50:38:10:1.95:0.05 and 45:30:23:1.5:0.5','siRNA']],
+ sec:['WO2016189532A1 (PCT)','EP3303598A1 / B1 (granted 2025-03-19)','US20180142261A1','US20210108228A1','US12065664B2 (method of treatment)','EP4667492A2 / A3'],
+ prim:'US 62/166,146 (2015-05-26)'},
+{id:'B',asg:'Capstan Therapeutics',pn:'US12311033B2',date:'2025-05-27',status:'Active (to 2044)',
+ cells:[['T cells (CD2/4/5/8)','tcell'],['HSC / MSC (CD117)','hsc']],mode:'Antibody',
+ claim:'An LNP of 35-65 mol% ionizable cationic lipid of a stated structure, 0.5-3 mol% PEG-lipid (functionalized plus non-functionalized), 7-13 mol% phospholipid and 27-50 mol% sterol. Dependent claim: N/P 3 to 9.',
+ ligand:'Anti-CD5 (5D7, 53-7.3), anti-CD8 (RPA-T8), anti-CD117 (104D2, JSP191, CK6, Ab85), anti-CD2 (RPA-2.10), CD58 / alefacept. SATA-maleimide coupling after DSPE-PEG-maleimide post-insertion.',
+ cargoTags:['mRNA'],cargo:'mRNA: mCherry reporter; anti-CD19, CD20, BCMA CAR (claim 7: TCR, CAR, engager, nuclease). Cas9 mRNA with sgRNA.',
+ disease:'Listed: autoimmune (lupus, myositis, MS), B-cell malignancies, hemoglobinopathies, fibrosis, allograft rejection. Examples are reporter studies in mouse and NHP T cells.',
+ lipid:'CICL1 (proprietary), series CICL1-4 and CICL250.x',lipidChem:'Biodegradable, ester-linked; c-pKa 8.4-8.7, cLogD 13.6-14.4; LNP pKa about 6-7. Structure is a drawing in claim 1.',
+ form:'Ionizable : DSPC : Chol : DMG-PEG2k : DSPE-PEG2k-Mal = 50:10:38.5:1.4:0.1 at N/P 6 (lead formulation). Ionizable lipid varied 35-62 mol%, DSPC 7-10 mol%. Lead LNP 93 nm, PDI 0.11, encapsulation 96%.',
+ forms:[['BF1 (benchmark)','ALC-0315','50:10:38.5:1.4:0.1, N/P 6','82 nm, PDI 0.14, EE 94%'],
+        ['Benchmark','SM-102','same base mix','85 nm, PDI 0.20, EE 94%'],
+        ['Benchmark','DLin-MC3-DMA','same base mix','108 nm, PDI 0.14, EE 87%'],
+        ['Benchmarks','Lipid A9, 10a, 10f, 10p','same base mix','77-101 nm, PDI 0.08-0.19'],
+        ['F1 (lead)','CICL1','50:10:38.5:1.4:0.1, N/P 6','93 nm, PDI 0.11, EE 96%'],
+        ['N/P series','CICL1','50:10:38.5 with PEG 1.3/0.2 (N/P 3) and 1.425/0.075 (N/P 9)','mCherry mRNA'],
+        ['Ionizable % series','CICL1','42:10:46.5, 58:10:30.5 (DMG-PEG); 35 to 62 mol% with DSG-PEG','mCherry mRNA'],
+        ['Phospholipid / PEG series','CICL1','58:7:33.5:1.4:0.1 with DMG-, DPG- or DSG-PEG; 58:7:34:0.9:0.1; DSG-PEG 0.4 to 2.4 mol%','mCherry mRNA']],
+ sec:['WO2024249954A1 / A9 (PCT, ceased)','US20240398982A1','US20250228966A1','EP4719352A1','JP, IL, AU, KR, CN, MX, CO entries (Google)'],
+ prim:'US 63/505,424 (2023-05-31)'},
+{id:'C',asg:'Univ. of Pennsylvania (CD5 FAP-CAR)',pn:'US20230203538A1',date:'2023-06-29',status:'Abandoned',
+ cells:[['T cells (CD5)','tcell']],mode:'Antibody',
+ claim:'A composition of a delivery vehicle conjugated to a targeting domain that binds a T-cell surface antigen (pan-T: CD2, CD3, CD5, CD7), carrying nucleoside-modified nucleic acid encoding an agent that binds an activated fibroblast (e.g. a FAP CAR).',
+ ligand:'Anti-CD5: rat anti-mouse clone 53-7.3 and mouse anti-human clone UCHT2 (BioLegend). SATA-maleimide: DSPE-PEG-maleimide post-insertion, SATA-thiolated antibody, thioether bond.',
+ cargoTags:['mRNA'],cargo:'Nucleoside-modified mRNA (m1Psi) for a mouse FAP CAR (scFv clone 73.3); GFP, Cre and luciferase mRNA as controls.',
+ disease:'Cardiac fibrosis (angiotensin II / phenylephrine pressure-overload mouse model).',
+ lipid:'Proprietary ionizable lipid from Acuitas Therapeutics',lipidChem:'Not disclosed by name or structure. The patent also describes generic Formula I-III amino lipids (DLin-KC2-DMA example), which were not the lipid used in the examples.',
+ form:'Ionizable cationic lipid, phosphatidylcholine, cholesterol, PEG-lipid; ratios not stated. About 80 nm, PDI 0.02-0.06, encapsulation about 95%. Self-assembly by rapid ethanol-aqueous mixing at acidic pH. N/P not stated.',
+ forms:[['Example LNP-mRNA','Acuitas proprietary ionizable lipid','Ionizable lipid / phosphatidylcholine / cholesterol / PEG-lipid (ratios not stated)','About 80 nm, PDI 0.02-0.06, EE about 95%']],
+ sec:['WO2022081694A1 (PCT)','EP4228601A1'],prim:'Priority 2020-10-13 (application number not shown)'},
+{id:'D',asg:'Univ. of Pennsylvania (endothelial)',pn:'CN117396194A',date:'2024-01-12',status:'Pending',
+ cells:[['Endothelium (lung, brain)','endo']],mode:'Antibody',
+ claim:'A composition of a delivery vehicle carrying a therapeutic agent for stroke or a neurological disorder, conjugated to a domain binding an endothelial marker (ICAM-1, PECAM-1, VCAM-1, ACE, APP, PV1, P- or E-selectin, VE-cadherin). Claim 6: LNP of ionizable lipid / DOPE / cholesterol / C14-PEG2000 at 35:16:46.5:2.5.',
+ ligand:'Anti-PECAM-1, anti-VCAM-1, anti-ICAM-1 mAbs. SATA-maleimide; DBCO azide-click and EDC-NHS as alternatives.',
+ cargoTags:['mRNA','siRNA'],cargo:'Luciferase and GFP mRNA in examples; TM-FLAG mRNA [summary]. Listed: thrombomodulin, catalase, SOD, VEGF mRNA; iNOS siRNA.',
+ disease:'Claimed: stroke and neurological disorders. Also listed: acute lung injury, pulmonary embolism, PAH. Tested: TNF-alpha neurovascular inflammation, stroke [summary], lung targeting.',
+ lipid:'Ionizable lipid, not named (Acuitas-type)',lipidChem:'Described only as an "ionizable cationic lipid". Penn amino lipids I-6, III-3, III-7 (ester or C=C linkers) are listed; MC3 is a comparator.',
+ form:'Experimental LNP: ionizable lipid / phosphatidylcholine / cholesterol / PEG-lipid = 50:10:38.5:1.5, RNA:lipid 0.05 w/w. Unmodified 82.5 ± 1.8 nm (PDI 0.062); antibody-conjugated 102-103 nm (PDI 0.2). N/P not stated.',
+ forms:[['Experimental LNP','Ionizable lipid (unnamed)','Ionizable / PC / Chol / PEG-lipid 50:10:38.5:1.5','82.5 nm bare; 102-103 nm with antibody'],
+        ['Claim 6 LNP','Ionizable lipid (unnamed)','Ionizable / DOPE / Chol / C14-PEG2000 35:16:46.5:2.5','Claimed composition'],
+        ['Comparator (Figs 47-48)','DLin-MC3-DMA','With or without dexamethasone','iNOS siRNA / scrambled siRNA'],
+        ['Immunoliposomes (not LNP)','None','DPPC / DSPE-PEG2000 / Chol 54:6:40; soy PC / egg PG / Chol / DSPE-PEG 44:15:40:6','Imatinib, dexamethasone, fingolimod']],
+ sec:['WO2022192674A1 (PCT)','US20240189445A1','EP4304567A1'],prim:'US 63/159,712 (2021-03-11)'},
+{id:'E',asg:'Univ. of Pennsylvania (CAR-T expansion)',pn:'US20260191956A1',date:'2026-07-09',status:'Pending',
+ cells:[['Tumor cells (glioma)','tumor'],['T cells (CAR-T)','tcell']],mode:'Preferential tumor binding',
+ claim:'A method of treating cancer: give a CAR cell plus an LNP carrying a nucleic acid for a modified tumor-associated antigen; the LNP binds tumor cells preferentially and the antigen is expressed on them.',
+ ligand:'Chlorotoxin (ion-channel ligand) and anti-CD5 antibody are described as targeting molecules. Conjugation not stated; the examples show tumor-selective uptake of the LNPs themselves.',
+ cargoTags:['mRNA'],cargo:'mRNA for truncated EGFRvIII or truncated CD19 (CAR target antigens); luciferase; dominant-negative TGF-beta. One aspect encodes a CAR.',
+ disease:'Glioma and glioblastoma (antigen "painting" of tumor cells and organoids); other cancers listed.',
+ lipid:'Formula I piperazine lipids: A4, B5 (also A2, B2)',lipidChem:'Piperazine core with bis(2-hydroxyalkyl)amine arms through ether linkers. A4 carries 2-hydroxydodecyl tails; B5 carries 2-hydroxytetradecyl tails.',
+ form:'Ionizable lipid, helper lipid, cholesterol or derivative, PEG-lipid; ionizable lipid about 10-60 mol% as a range. The composition used in the experiments, N/P, size and mixing method are not stated.',
+ forms:[['Described LNP','A4, B5, A2 or B2 (Formula I)','Ionizable 10-60 mol% range; helper lipid, cholesterol, PEG-lipid unnamed','Experimental composition not stated']],
+ sec:['WO2024118634A2 / A3 (PCT, ceased)'],prim:'US 63/385,162 (2022-11-28)'},
+{id:'F',asg:'NanoVation (targeted)',pn:'WO2024119279A1',date:'2024-06-13',status:'Ceased (PCT)',
+ cells:[['HSPC (CD117+)','hsc'],['T cells (CD5/CD4)','tcell']],mode:'Antibody / peptide',
+ claim:'An LNP with nucleic acid, more than 35 mol% neutral lipid, 5-50 mol% ionizable cationic lipid, a sterol, and a targeting moiety linked to a lipophilic moiety in the lipid layer.',
+ ligand:'Anti-CD117 and anti-CD5 (negative control) antibodies; RGD peptide on DSPE-PEG2k. Targeting lipid below 2 mol%. Post-insertion by lipid-PEG-maleimide is an option.',
+ cargoTags:['mRNA'],cargo:'Firefly luciferase and eGFP mRNA in examples. siRNA, ASO, DNA, Cas9 and base editors listed.',
+ disease:'Cancer, infectious disease, autoimmune disorders (listed). Examples are biodistribution only.',
+ lipid:'norMC3 (nMC3, WO 2022/246571); MF019 (sulfur lipid) in one LNP',lipidChem:'Protonatable tertiary amine, two C15-40 chains, optional ester or sulfur; pKa 6-8, logP at least 11. C12-200 lipidoids excluded.',
+ form:'Elevated neutral lipid: 40 mol% DSPC (Examples 1-3), 50 mol% DSPC (Example 4). T-junction mixing, mRNA in 25 mM acetate pH 4, 1:3 lipid:aqueous, 20 mL/min, dialysis into PBS. Sizes, PDI and N/P are in image tables, not stated in text.',
+ forms:[['LNP B','norMC3','nMC3 37.9 / DSPC 40 / Chol 21.1 / DSPE-PEG2k-RGD 1','Luciferase mRNA; bone marrow over liver'],
+        ['LNP C','norMC3','nMC3 36.9 / DSPC 40 / Chol 21.1 / DSPE-PEG2k-RGD 2','Luciferase mRNA'],
+        ['LNP A-E','norMC3','DSPC 40 mol%, RGD-lipid at several levels; E uses beta-sitosterol','Particle-property study (image table)'],
+        ['Example 4 (targeted)','norMC3','nMC3 / 50 mol% DSPC / Chol / PEG-lipid / antibody lipid (anti-CD117 or anti-CD5)','eGFP mRNA, HSPCs'],
+        ['Fig 5 LNP','MF019','MF019 / DSPC / Chol / PEG-DMG 27.4 / 50 / 21.1 / 1.5','Luciferase mRNA, cryo-TEM'],
+        ['Reference','DLin-MC3-DMA (Onpattro-type)','50 / 10 / 38.5 / 1.5','Comparator']],
+ sec:['EP4630061A1','US20260199520A1','JP2025541677A','KR20250134181A','CN120676970A','AU2023387789A1','BR 112025010814'],prim:'US 63/431,177 (2022-12-08)'},
+{id:'G',asg:'NanoVation (high sterol)',pn:'US12343405B2',date:'2025-07-01',status:'Active (to 2043)',
+ cells:[['Liver (hepatocytes)','liver']],mode:'None (lipid design)',
+ claim:'A method of delivering mRNA or vector DNA for liver expression with an LNP of 49-85 mol% sterol, 0-7 mol% phospholipid, an ionizable lipid and 0.5-1.8 mol% PEG-lipid, giving at least 20-fold higher expression in liver than spleen.',
+ ligand:'No specific ligand. A targeting ligand "may be" attached to a sterol or PEG-lipid.',
+ cargoTags:['mRNA','siRNA','DNA','ASO'],cargo:'Luciferase mRNA; c-myc antisense; luciferase siRNA; plasmid DNA; mCherry mRNA.',
+ disease:'None stated. Reporter studies in CD-1 mice; Onpattro as comparator.',
+ lipid:'DLin-MC3-DMA (main); also norMC3, MF019, C108-C142 series',lipidChem:'Amino head, two lipophilic groups with ester or sulfur (biodegradable); pKa 5.0-7.0. CHEMS as optional anionic lipid.',
+ form:'MC3 / Chol / PEG-DMG = 42 / 56.5 / 1.5 (also 35 / 63.5 / 1.5). Sterol 49-85 mol%, phospholipid 0-7 mol%. N/P 6. T-junction 3:1 at 20 mL/min. About 60 nm, PDI below 0.1.',
+ forms:[['Lead','DLin-MC3-DMA','MC3 / Chol / PEG-DMG 42 / 56.5 / 1.5','About 60 nm, PDI below 0.1'],
+        ['Phospholipid series','DLin-MC3-DMA','MC3 / DSPC / Chol / PEG-DMG 42 / 3 / 53.5 / 1.5; SPC-Chol variants','Liver over spleen'],
+        ['Control','DLin-MC3-DMA (Onpattro)','MC3 / Chol / DSPC / PEG-DMG 50 / 38.5 / 10 / 1.5','Comparator'],
+        ['Lipid screen','norMC3, MF019, C108, C109, C123, C124, C136, C137, C142','Same high-sterol design','Example 8']],
+ sec:['US11951177B2 (parent)','WO2023178425A1 (PCT)','US20230302153A1','US20240207439A1','EP4496565A1','CN118922178A','JP, KR, AU, CA entries (Google)'],prim:'US 63/269,815 (2022-03-23)'},
+{id:'H',asg:'Tessera (surface-modified)',pn:'WO2024102772A2',date:'2024-05-16',status:'Ceased (PCT)',
+ cells:[['T cells (CD2-CD8)','tcell'],['HSC (CD90, CD117)','hsc']],mode:'Antibody / Fab',
+ claim:'A conjugate of a targeting moiety and an LNP encapsulating a therapeutic agent, linked through an enzyme recognition sequence (sortase LPET with 3-10 glycines, LplA GFEDKVWYDLDA, transglutaminase LLQG, or FGE).',
+ ligand:'Antibody, Fab or scFv with the recognition sequence at the heavy-chain C-terminus. Only worked example: anti-CD117 Fab-LAP tagged, LplA ligation, 97% labelling.',
+ cargoTags:['mRNA','CRISPR','DNA'],cargo:'Generic: mRNA (CAR, Cas9 with guide RNA, gene modifying system), siRNA, ASO, plasmid, protein.',
+ disease:'Cancer, inflammatory, infectious and genetic disease (generic). No disease example.',
+ lipid:'V003 (also V004, V005, V040)',lipidChem:'Proprietary Tessera lipid; V003 is shown as a drawing only.',
+ form:'A lipidated Fab is inserted into a precursor LNP. DSPC / DOPC / DOPE helper, cholesterol, DMG / DSPE-PEG. The patent gives no LNP composition, N/P or size in examples; general N/P 3-10 and 10-150 nm only.',
+ forms:[['Described precursor LNP','V003, V004, V005 or V040','Ionizable / helper lipid / sterol / PEG-lipid; ratios not stated','Lipidated Fab inserted afterwards']],
+ sec:['WO2024102772A3','EP4615982A2','TW202428247A'],prim:'US 63/423,274 (2022-11-07)'},
+{id:'I',asg:'Tessera (drug conjugates)',pn:'WO2024102770A1',date:'2024-05-16',status:'Ceased (PCT)',
+ cells:[['HSC (CD117)','hsc'],['T cells (CD3, CD4, CD5, CD8)','tcell']],mode:'Antibody / Fab',
+ claim:'A conjugate of a targeting moiety and an LNP, linked by a click product from a tetrazine on the targeting moiety and a trans-cyclooctene (TCO) on the LNP. Dependent claims: antibody, Fab or scFv; 0.05-2 mol% pegylated lipid carrying the click handle.',
+ ligand:'Anti-CD117 Fab, anti-CD3 Fab, anti-CD5 antibody. Methyltetrazine on the Fab clicks to DSPE-PEG2K-TCO on the LNP; sortase or LplA tags carry the handle.',
+ cargoTags:['mRNA'],cargo:'BCMA CAR template RNA with RTE1 gene-modifying mRNA (human T cells, CAR-T in mice); GFP / eGFP mRNA (HSCs, NHP T cells).',
+ disease:'Myeloma cell-line killing (H929) and a GVHD mouse model; generic cancer, inflammatory, infectious, genetic.',
+ lipid:'V003 (all examples)',lipidChem:'Proprietary Tessera ionizable lipid; structure is a drawing only.',
+ form:'V003 / DSPC / Chol / DMG-PEG / DSPE-PEG2K-TCO = 47:8:43.5:1:0.5 (most examples). Also 47:22:28.5:2:0.5 (high DSPC) and 47:8:42.5:2:0.5. N/P and measured sizes not stated; general range 10-150 nm.',
+ forms:[['Standard','V003','V003 / DSPC / Chol / DMG-PEG / DSPE-PEG2K-TCO 47:8:43.5:1:0.5','eGFP mRNA; T cells, HSCs, NHP'],
+        ['High-DSPC (Ex. 7)','V003','47:22:28.5:2:0.5','eGFP mRNA, HSCs in mice'],
+        ['CAR-T (Ex. 11, 15, 16)','V003','47:8:42.5:2:0.5','BCMA CAR template RNA + RTE1 mRNA'],
+        ['PEG-length test (Ex. 13)','V003','47:8:43.5:1:0.5 or 47:8:43.5:1.4:0.1 with DSPE-PEG2000- or PEG5000-TCO','Click-handle conjugation efficiency']],
+ sec:['WO2024102770A9','WO2024102768A2 (sibling)','EP4615515A1','EP4615476A2','US20260174882A1','CN121219018A','AU2023375378A1'],prim:'US 63/423,188 (2022-11-07)'},
+{id:'J',asg:'ReCode Therapeutics / UT System',pn:'US12121610B2',date:'2024-10-22',status:'Active (to 2042)',
+ cells:[['Lung (airway epithelium)','lung']],mode:'None (SORT lipid)',
+ claim:'An LNP for delivering a polynucleotide to lung cells with a dendrimer ionizable cationic lipid, ethylphosphocholine at about 20-65 mol%, a phospholipid, cholesterol and a further lipid component.',
+ ligand:'No conjugated ligand. A supplemental SORT lipid (14:0 EPC in the claim; DODAP and 14:0 TAP in examples) directs organ tropism.',
+ cargoTags:['mRNA'],cargo:'DNAI1-HA mRNA (a ciliary protein); luciferase mRNA for imaging.',
+ disease:'Lung disease by inhalation; the DNAI1 cargo points to primary ciliary dyskinesia, but no disease is named in the text.',
+ lipid:'4A3-SC7 and 5A2-SC8 (dendrimer lipids)',lipidChem:'Dendrimer or dendron cationic lipids with C6-C24 chains built by Michael addition of thiols; ester linkages. 76 numbered lipids in Table 5.',
+ form:'RTX0001: 4A3-SC7 19.05 / DODAP 20 / DOPE 19.05 / Chol 38.9 / DMG-PEG 3.81. General N/P 5:1 to 20:1; particles 100 nm or smaller, PDI 0.2 or less. Example sizes and mixing method are not stated.',
+ forms:[['RTX0001','4A3-SC7','4A3-SC7 19.05 / DODAP 20 (SORT) / DOPE 19.05 / Chol 38.9 / DMG-PEG 3.81','DNAI1-HA mRNA, NHP inhalation'],
+        ['RTX0004','5A2-SC8','5A2-SC8 23.81 / DOPE 23.81 / Chol 47.62 / DMG-PEG 4.76 (no SORT lipid)','Control composition'],
+        ['RTX0051','4A3-SC7','4A3-SC7 / 14:0 EPC (SORT) / DOPE / Chol / DMG-PEG, same proportions as RTX0001','DNAI1-HA mRNA'],
+        ['RTX0052','4A3-SC7','As RTX0051 with 14:0 TAP as the SORT lipid','DNAI1-HA mRNA']],
+ sec:['WO2022204219A1 (PCT)','US20230302138A1','US20230293429A1','US20230338411A1','US20240207178A1','EP4312987A1 / A4','US20240374511-374514A1','US20240390271-390272A1'],prim:'Priority 2021-03-22 (application number not shown)'},
+{id:'K',asg:'Bristol Myers Squibb (HSP47 siRNA)',pn:'WO2024059714A1',date:'2024-03-21',status:'Ceased (PCT)',
+ cells:[['Hepatic stellate cells','liver']],mode:'Retinoid (vitamin A)',
+ claim:'A method of treating advanced hepatic fibrosis (METAVIR F3 or higher) in a patient with HCV and no detectable HCV RNA for at least 12 weeks, by giving "Formulation (I)" at 45 mg or 90 mg per dose per week. Claim 2: an HSP47 siRNA in an LNP conjugated to a retinoid.',
+ ligand:'Retinoid conjugated to the LNP. Retinoid-loaded carriers accumulate in hepatic stellate cells, helped by retinol-binding protein.',
+ cargoTags:['siRNA'],cargo:'siRNA silencing heat shock protein 47 (HSP47 mRNA); four siRNA sequences (siRNA 1-4) are described.',
+ disease:'Advanced hepatic fibrosis in HCV patients after viral clearance. HSP47 mRNA and protein reduction measured in liver at week 12.',
+ lipid:'HEDC or SI04 (cationic lipids)',lipidChem:'Cationic lipids shown as drawings only; companion lipids are DOPE (zwitterionic phospholipid) and PEG-DMPE.',
+ form:'Cationic lipid (HEDC or SI04) + DOPE + PEG-DMPE + retinoid conjugate, with siRNA. Mol% ratios, size and N/P are in an image table or not stated; the injection formulation also uses citric acid and trisodium citrate buffer, with alcohol and water removed by lyophilisation.',
+ forms:[['Formulation (I)','HEDC or SI04','Cationic lipid / DOPE / PEG-DMPE / retinoid conjugate (ratios not in text)','HSP47 siRNA; 45 or 90 mg weekly']],
+ sec:['WO2024059714A9 (corrected version)'],prim:'Priority date not shown on the page'},
+{id:'L',asg:'Nitto Denko (retinoid carriers, BMS partner)',pn:'US10195145B2',date:'2019-02-05',status:'See family',
+ cells:[['Hepatic stellate cells','liver']],mode:'Retinoid (vitamin A)',
+ claim:'US 10,195,145: a method of treating fibrosis with a carrier of cationic lipid plus a retinoid, carrying a modified double-stranded nucleic acid of structure A2. US 10,196,637: a carrier of lipid plus a (retinoid)m-linker-(retinoid)n compound. US 8,173,170: a stellate cell-specific drug carrier with a stellate-cell-specific amount of retinoid.',
+ ligand:'Retinoid (vitamin A) at 10% in the original liposomes. Conjugates include DSPE-PEG-VA, DOPE-VA, DC-VA. The retinoid binds retinol-binding protein, which brings the carrier into stellate cells.',
+ cargoTags:['siRNA','DNA'],cargo:'siRNA against gp46 (rat counterpart of HSP47); GFP expression plasmid as tracer.',
+ disease:'Liver fibrosis and cirrhosis (rat models, survival and collagen readouts); fibrosis in other organs also described.',
+ lipid:'DC-6-14 (original); HEDC and DODC-type lipids in the later patent',lipidChem:'DC-6-14 is a permanently cationic diethanolamine ester lipid, not a pH-ionizable lipid. HEDC lipids are shown in the 2019 patent.',
+ form:'Cationic liposomes of DC-6-14 / cholesterol / DOPE = 4:3:3 (molar), freeze-dried and rehydrated; vitamin A mixed in at 10%; retinoid conjugate 0.1-20 mol% of lipid in the later patent. siRNA : DC-6-14 ratio set per experiment; sizes not given in the text read.',
+ forms:[['VA-Lip-gp46siRNA','DC-6-14','DC-6-14 / Chol / DOPE 4:3:3 + 10% vitamin A','siRNA; cirrhosis rat survival'],
+        ['Later retinoid conjugates','HEDC / DODC lipids','Retinoid conjugate 0.1-20 mol% of lipid','siRNA (structure A2)']],
+ sec:['US8173170B2 (2012)','US10196637B2 (2019)','EP and CN counterparts not checked'],prim:'Earliest priority not checked'},
+{id:'M',asg:'Juno Therapeutics (BMS)',pn:'US20250382640A1',date:'2025-12-18',status:'Pending',
+ cells:[['T cells (ex vivo)','tcell']],mode:'None (ex vivo)',
+ claim:'A co-LNP formed by fusing a first LNP (DNA plus a first ionizable lipid) with a second LNP (RNA plus a second ionizable lipid). Dependent claims: volume ratio 3:1 to 1:3, helper lipids, a non-ionizable cationic lipid at 0.2-20 mass %.',
+ ligand:'No targeting ligand. Anti-CD3 and anti-CD28 antibodies are used to activate the T cells before or after transfection, not attached to the LNP.',
+ cargoTags:['DNA','mRNA','CRISPR'],cargo:'Closed-end DNA (ceDNA) encoding a CAR (up to 8 kb, including bispecific CARs) with RNA for Cas9 or Cas12a.',
+ disease:'CAR-T cell manufacturing for cancer (anti-CD19 background); non-viral editing of T cells.',
+ lipid:'OF-C4-Deg-Lin, cKK-E12, DLin-KC2-DMA, DLin-MC3-DMA (or analogs)',lipidChem:'Ionizable amino lipids; DLin-KC2-DMA at 35-45 mass % for the DNA LNP. OF-C4-Deg-Lin and cKK-E12 are lipid-like materials with branched amino-alcohol heads.',
+ form:'DNA-LNP: DLin-KC2-DMA 35-45 mass %, DNA 3-4 mass %, with helper lipids; RNA-LNP uses cKK-E12 or MC3. Co-LNP average size 50-150 nm (general range). Mol% and N/P not stated.',
+ forms:[['DNA-LNP','DLin-KC2-DMA (or OF-C4-Deg-Lin)','Ionizable 35-45 mass %, DNA 3-4 mass %, helper lipids','ceDNA CAR'],
+        ['RNA-LNP','cKK-E12 or DLin-MC3-DMA','Not stated','Cas9 or Cas12a RNA'],
+        ['Co-LNP','Both lipids','Fusion of the two LNPs, volume ratio 3:1 to 1:3','Ex vivo T cells']],
+ sec:['Family not found in snapshot'],prim:'Not checked'},
+{id:'N',asg:'Orna Therapeutics (not BMS)',pn:'US12415776B2',date:'2025-09-16',status:'Granted',
+ cells:[['T cells (optional)','tcell']],mode:'None claimed (targeting optional)',
+ claim:'US 12,415,776, US20260184668A1, US20250268828A1, WO2024102730A1 and WO2024205657A2 claim ionizable lipid compounds. WO2026122685A1 claims an LNP with a buffer, hyaluronidase and RNA encoding a CAR or TCR. WO2025007148A1 claims a polymeric LNP of circular RNA, ionizable lipid and an amphiphilic polymer.',
+ ligand:'Described, not claimed: Example 31 couples reduced anti-CD8 antibody to circular-RNA LNPs through an SM(PEG)24 cross-linker (no results). Other embodiments: antibody or fragment targeting moieties, GalNAc, mannose.',
+ cargoTags:['mRNA'],cargo:'Circular RNA (oRNA): CAR, BCMA CAR, CD19-binding molecules, muscle proteins; gene-editing mRNA.',
+ disease:'In vivo CAR-T, B-cell and myeloma targets, muscle disease, vaccines (VZV). Examples are in vitro T-cell killing (Example 59B) and reporters.',
+ lipid:'Proprietary Formulas 13*, 13c-1, 7, 15, 22 (RV88 in Example 32)',lipidChem:'Ester-containing branched ionizable lipids; compounds claimed by formula, drawn as images.',
+ form:'Ionizable lipid + structural lipid + PEGylated lipid + phospholipid (standard four-lipid LNP); 2-D vortex microfluidic chip mixing in Example 32. Ratios, N/P and size for named examples were not extracted.',
+ forms:[['Circular-RNA LNP','RV88 (Example 32) and Formula 13* lipids','Ionizable / structural / PEG / phospholipid','Circular RNA'],
+        ['Targeted version (Example 31)','Same','Adds anti-CD8 antibody via SM(PEG)24','Protocol only']],
+ sec:['US12384741B2, US12180138B2, US12077485B2 (same family)','WO2024102730A1','WO2024205657A2','US20260184668A1','WO2026122685A1','WO2025007148A1','WO2025049690A1 (circular PEG lipids)'],prim:'Not checked'},
+{id:'O',asg:'Nitto Denko (pH-sensitive lipids, BMS partner)',pn:'US12458605B2',date:'2025-11-04',status:'Granted',
+ cells:[['Liver, spleen','liver']],mode:'None (lipid design)',
+ claim:'An LNP containing a pH-sensitive cationic lipid of formula (I), (R1)(R2)C(OH)-(CH2)a-(O-CO)b-X. WO2025199302A1 claims the lipid compounds; US 11,084,779 claims a composition of a compound of formula I.',
+ ligand:'No ligand.',
+ cargoTags:['siRNA','mRNA','DNA'],cargo:'Factor VII siRNA; Nluc mRNA; pFluc plasmid DNA.',
+ disease:'None (reporter and Factor VII knockdown in mice; liver and spleen expression).',
+ lipid:'Nitto pH-sensitive cationic lipids ("Compound 1"); DLin-MC3-DMA, L319 and cKK-E12 as references',lipidChem:'Hydroxyl-bearing branched lipids with an ester; neutral at physiological pH, cationic in endosomes.',
+ form:'Cationic lipid 40-60 mol% / cholesterol 30-50 mol% / phospholipid (DSPC, DOPC or DOPE) / DMG-PEG. Example ratio: Compound 1 : Chol : DOPE : DMG-PEG = 57.5 : 38.5 : 2.5 : 1.5 or 59 : 34 : 5.5 : 1.5. Size up to 150-400 nm (range).',
+ forms:[['Preferred A','Nitto Compound 1','57.5 / 38.5 / 2.5 / 1.5 (lipid / Chol / DOPE / DMG-PEG)','siRNA, mRNA'],
+        ['Preferred B','Nitto Compound 1','59 / 34 / 5.5 / 1.5','siRNA, mRNA']],
+ sec:['WO2025199302A1','US11084779B2','EP4704907A2','WO2026141631A1','WO2026143008A1'],prim:'Not checked'},
+{id:'P',asg:'Bristol Myers Squibb (lipid chemistry)',pn:'WO2024243480A1',date:'2024-11-28',status:'Pending',
+ cells:[['Not specified','liver']],mode:'None (lipid chemistry)',
+ claim:'WO2024243480A1: ionizable lipid compounds; claims 2-3 add an LNP formulation with an optional PEG-modified lipid and cholesterol. US 12,522,561 and US 12,617,754: processes for synthesizing cationic lipids of Formula I (a = 8 to 14).',
+ ligand:'No ligand. The synthesis patent says the lipids are used in "fat-soluble compositions for targeting and enhancing activity" of siRNA.',
+ cargoTags:['mRNA','siRNA'],cargo:'mRNA, siRNA or miRNA; encapsulation by mixing lipids with the RNA solution.',
+ disease:'Not stated.',
+ lipid:'New ionizable lipids (Tables 1 and 2 of the patent)',lipidChem:'Structures are tables of compounds; the synthesis patents cover Formula I cationic lipids.',
+ form:'Ionizable lipid, optional PEG-lipid and cholesterol, plus non-cationic lipids. No mol% or sizes extracted.',
+ forms:[['Described LNP','Table 1/2 lipids','Ionizable lipid + PEG-lipid + cholesterol (ratios not extracted)','mRNA, siRNA']],
+ sec:['US20240390284A1 (with Signal Pharmaceuticals)','CN121194967A','EP4720051A1','US12522561B2','US12617754B2','EP4171578A1','WO2021262745A1'],prim:'Not checked'}
+];
+const ALLIED=new Set(['K','L','M','O','P']);
+
+const COLS=[['asg','Assignee / patent'],['cells','Target cells'],['ligand','Ligand'],['cargo','Cargo'],['disease','Disease'],['lipid','Ionizable lipid'],['form','Formulation']];
+const state={q:'',cell:new Set(),cargo:new Set(),mode:new Set(),grp:new Set(),sort:null,dir:1,open:null};
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const cellKinds=[...new Set(D.flatMap(r=>r.cells.map(c=>c[0].split(' (')[0])))];
+const cargoKinds=[...new Set(D.flatMap(r=>r.cargoTags))];
+const modeKinds=['Ligand-targeted','No ligand'];
+const isNone=r=>r.mode.startsWith('None');
+
+function chips(el,kinds,set){
+  const box=$(el);
+  kinds.forEach(k=>{const b=document.createElement('button');b.className='chip';b.type='button';b.textContent=k;b.setAttribute('aria-pressed','false');
+    b.onclick=()=>{set.has(k)?set.delete(k):set.add(k);b.setAttribute('aria-pressed',set.has(k));state.open=null;render()};box.appendChild(b)});
+}
+chips('#f-cell',cellKinds,state.cell);chips('#f-cargo',cargoKinds,state.cargo);chips('#f-mode',modeKinds,state.mode);chips('#f-grp',['BMS & allied','Other companies'],state.grp);
+$('#q').oninput=e=>{state.q=e.target.value.toLowerCase();state.open=null;render()};
+
+const head=$('#head');
+COLS.forEach(([k,l])=>{const th=document.createElement('th');const b=document.createElement('button');b.type='button';b.textContent=l;
+  b.onclick=()=>{state.dir=state.sort===k?-state.dir:1;state.sort=k;render()};th.appendChild(b);head.appendChild(th)});
+
+function match(r){
+  if(state.cell.size&&![...state.cell].some(k=>r.cells.some(c=>c[0].startsWith(k))))return false;
+  if(state.cargo.size&&![...state.cargo].some(k=>r.cargoTags.includes(k)))return false;
+  if(state.mode.size){const m=isNone(r)?'No ligand':'Ligand-targeted';if(!state.mode.has(m))return false}
+  if(state.grp.size){const g=ALLIED.has(r.id)?'BMS & allied':'Other companies';if(!state.grp.has(g))return false}
+  if(state.q){const hay=JSON.stringify(r).toLowerCase();if(!hay.includes(state.q))return false}
+  return true;
+}
+function sortKey(r,k){return k==='cells'?r.cells.map(c=>c[0]).join():String(r[k]).toLowerCase()}
+
+function render(){
+  let rows=D.filter(match);
+  if(state.sort)rows=[...rows].sort((a,b)=>sortKey(a,state.sort)>sortKey(b,state.sort)?state.dir:-state.dir);
+  $('#count').textContent=rows.length+' of '+D.length+' families shown';
+  const tb=$('#body');
+  if(!rows.length){tb.innerHTML='<tr><td colspan="7" class="empty">No family matches these filters. Clear a filter or the search box.</td></tr>';return}
+  tb.innerHTML=rows.map(r=>{
+    const open=state.open===r.id;
+    const main=`<tr class="row" tabindex="0" data-id="${r.id}" aria-expanded="${open}">
+      <td><div class="asg">${esc(r.asg)}</div><div class="pid"><a href="${G}${r.pn}/en" target="_blank" rel="noopener">${esc(r.pn)}</a> · ${r.date}</div><div class="stat">${esc(r.status)}</div></td>
+      <td>${r.cells.map(c=>`<span class="tag t-${c[1]}">${esc(c[0])}</span>`).join('')}<div class="mode">${esc(r.mode)}</div></td>
+      <td>${esc(r.ligand)}</td>
+      <td>${r.cargoTags.map(t=>`<span class="tag">${t}</span>`).join('')}<div>${esc(r.cargo)}</div></td>
+      <td>${esc(r.disease)}</td>
+      <td><strong>${esc(r.lipid)}</strong><div class="mode">${esc(r.lipidChem)}</div></td>
+      <td class="mono">${esc(r.form)}</td></tr>`;
+    const ft=`<div class="ftab"><table class="forms"><thead><tr><th>Formulation</th><th>Ionizable lipid</th><th>Composition (mol%)</th><th>Cargo / result</th></tr></thead><tbody>${r.forms.map(f=>`<tr>${f.map((c,i)=>`<td${i===1?' style="font-weight:600"':''}>${esc(c)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
+    const det=open?`<tr class="detail"><td colspan="7"><div class="dwrap">
+      <div><h4>Claim 1 (verified from full text)</h4><p>${esc(r.claim)}</p></div>
+      <div><h4>Ionizable lipid used in each formulation</h4>${ft}</div>
+      <div class="dgrid">
+      <div><h4>Primary (earliest priority)</h4><p>${esc(r.prim)}</p></div>
+      <div><h4>Secondary family members</h4><ul>${r.sec.map(s=>`<li>${esc(s)}</li>`).join('')}</ul></div>
+      <div><h4>Source</h4><p><a href="${G}${r.pn}/en" target="_blank" rel="noopener">Google Patents: ${esc(r.pn)}</a></p></div></div></div></td></tr>`:'';
+    return main+det}).join('');
+  tb.querySelectorAll('tr.row').forEach(tr=>{
+    const t=()=>{state.open=state.open===tr.dataset.id?null:tr.dataset.id;render();const n=document.querySelector(`tr.row[data-id="${state.open||tr.dataset.id}"]`);n&&n.focus()};
+    tr.onclick=e=>{if(e.target.closest('a'))return;t()};
+    tr.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();t()}};
+  });
+}
+render();
+</script>
+
+</body></html>
